@@ -28,7 +28,15 @@ const Tasks = ({ tasks, setTasks }: {
           style={styles.introductoryText}
           lightColor="rgba(0,0,0,0.8)"
           darkColor="rgba(255,255,255,0.8)">
-          Today is going to be a good day. You've completed {getCompletedTasksForToday(tasks)}/{tasks.length} tasks.
+          Today is going to be a good day.
+        </Text>
+      </View>
+      <View>
+        <Text
+          style={styles.introductoryText}
+          lightColor="rgba(0,0,0,0.8)"
+          darkColor="rgba(255,255,255,0.8)">
+          You've completed {getCompletedTasksForToday(tasks)}/{tasks.length} tasks.
         </Text>
       </View>
       {
@@ -64,13 +72,13 @@ const handleTaskPress = (tasks: Task[], setTasks: React.Dispatch<React.SetStateA
         name: originalTask.name,
         id: originalTask.id,
         completed: !originalTask.completed,
+        about: originalTask.about,
       };
       return newTask;
     }
     return originalTask;
   });
   setTasks(newTasks);
-  console.log(`toggled task ${task.name} id ${task.id}, i=${i}!`);
 }
 
 const completeAllTasks = (tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>): void => {
@@ -84,29 +92,12 @@ const completeAllTasks = (tasks: Task[], setTasks: React.Dispatch<React.SetState
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
-    // backgroundColor: '#fff',
     paddingHorizontal: 24,
+    maxWidth: "80%",
   },
   circleIcon: {
     paddingRight: 10,
   },
-  // developmentModeText: {
-  //   marginBottom: 20,
-  //   fontSize: 14,
-  //   lineHeight: 19,
-  //   textAlign: 'center',
-  // },
-  // contentContainer: {
-  //   paddingTop: 30,
-  // },
-  // welcomeImage: {
-  //   width: 100,
-  //   height: 80,
-  //   resizeMode: 'contain',
-  //   marginTop: 3,
-  //   marginLeft: -10,
-  // },
   introductoryText: {
     fontSize: 17,
     lineHeight: 24,
@@ -114,9 +105,6 @@ const styles = StyleSheet.create({
   },
   taskContainer: {
     marginTop: 15,
-    // marginHorizontal: 0,
-    // marginHorizontal: 20,
-    // alignItems: 'center',
   },
   helpLink: {
     paddingVertical: 15,

@@ -11,3 +11,6 @@ web-build/
 
 # macOS
 .DS_Store
+
+assets/images/check-circle-regular.svg
+assets/images/check-circle-solid.svg
