@@ -5,29 +5,27 @@ import Tasks from '../components/Tasks';
 import { Text, View, ScrollView } from '../components/Themed';
 import { Task, defaultTasks } from '../models/Task';
 import * as SQLite from 'expo-sqlite';
-import { getDB, getTaskHistoryFromDB } from '../sqlite/sqlite';
+import { getDB, getTaskHistoryFromDB, initializeDB } from '../sqlite/sqlite';
 
 export default function TasksScreen(): JSX.Element {
-  const db: SQLite.WebSQLDatabase = getDB();
+  let db: SQLite.WebSQLDatabase = getDB();
 
   const [retrievedInitialTasks, setRetrievedInitialTasks] = useState(false);
 
   // start by retrieving the tasks from sqlite
   const [tasks, setTasks] = useState(defaultTasks);
 
-  getTaskHistoryFromDB(db, (retrievedTasks: Task[]) => {
-    if (!retrievedInitialTasks) {
-      setTasks(retrievedTasks);
-      setRetrievedInitialTasks(true);
-    }
-  })
-
-  // const forceStateUpdate = () => {
-  //   const [value, setValue] = useState(0);
-  //   return [() => setValue(value + 1), value];
-  // }
-
-  // React.useEffect(() => { }, []);
+  // https://css-tricks.com/run-useeffect-only-once/
+  React.useEffect(() => {
+    initializeDB(db);
+    getTaskHistoryFromDB(db, (retrievedTasks: Task[]) => {
+      if (!retrievedInitialTasks) {
+        setTasks(retrievedTasks);
+        setRetrievedInitialTasks(true);
+      }
+    })
+    return () => { }
+  }, [])
 
   return (
     <ScrollView>

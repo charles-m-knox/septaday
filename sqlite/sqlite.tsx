@@ -50,34 +50,27 @@ export const initializeDB = (db: SQLite.WebSQLDatabase): void => {
 export const initializeTasks = (db: SQLite.WebSQLDatabase, tasks: Task[]): void => {
     if (db) {
         tasks.forEach((task: Task) => {
-            console.log(`pushing ${task.id} to db`);
+            console.log(`initializeTasks: pushing ${task.id} to db`);
             db.transaction(
                 tx => {
                     tx.executeSql(
                         'insert into tasks (id, name, about, sortOrder) values (?, ?, ?, ?)',
-                        [
-                            task.id,
-                            task.name,
-                            task.about,
-                            task.order,
-                        ],
+                        [task.id, task.name, task.about, task.order,],
                         (_, { rows }) => {
                             console.log(JSON.stringify(rows));
-                            console.log(Object.values(rows));
                         }
                     );
                 },
                 (err) => {
-                    console.log(`err pushing task to db`);
+                    console.log(`initializeTasks: err pushing task to db`);
                 },
                 () => {
-                    console.log('done');
+                    console.log('initializeTasks: done');
                 }
             );
         });
     }
 }
-
 
 // https://stackoverflow.com/a/61505926/3798673
 export const getDateInt = (): number => {

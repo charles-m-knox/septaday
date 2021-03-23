@@ -58,7 +58,7 @@ const Tasks = ({ tasks, setTasks, db }: {
       }
 
       <View style={styles.taskContainer}>
-        <TouchableOpacity onPress={() => { completeAllTasks(tasks, setTasks); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={() => { completeAllTasks(db, tasks, setTasks); }} style={styles.helpLink}>
           <Text style={styles.taskText} lightColor={Colors.light.tint}>
             Complete all of today's tasks.
           </Text>
@@ -81,7 +81,6 @@ const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Rea
       pushTaskToDB(db, newTask);
       return newTask;
     }
-    // pushTaskToDB(db, originalTask);
     return originalTask;
   });
   newTasks.sort((a: Task, b: Task) => a.order - b.order);
@@ -95,13 +94,27 @@ const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Rea
   });
 }
 
-const completeAllTasks = (tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>): void => {
-  const newTasks: Task[] = tasks.map((originalTask: Task) => {
-    originalTask.completed = true;
-    return originalTask;
+const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>): void => {
+  const newTasks: Task[] = tasks.map((originalTask: Task, j: number) => {
+    const newTask: Task = {
+      name: originalTask.name,
+      id: originalTask.id,
+      completed: true,
+      about: originalTask.about,
+      order: originalTask.order,
+    };
+    pushTaskToDB(db, newTask);
+    return newTask;
   });
-
-  setTasks(newTasks);
+  newTasks.sort((a: Task, b: Task) => a.order - b.order);
+  getTaskHistoryFromDB(db, (retrievedTasksFromDB: Task[]) => {
+    if (!retrievedTasksFromDB) {
+      setTasks(newTasks);
+      return;
+    }
+    retrievedTasksFromDB.sort((a: Task, b: Task) => a.order - b.order);
+    setTasks(retrievedTasksFromDB);
+  });
 }
 
 const styles = StyleSheet.create({
