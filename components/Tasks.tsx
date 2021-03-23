@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Task } from '../models/Task';
 import Colors from '../constants/Colors';
@@ -13,6 +13,11 @@ const Tasks = ({ tasks, setTasks, db }: {
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
   db: SQLite.WebSQLDatabase,
 }): JSX.Element => {
+  const useForceUpdate = () => {
+    const [value, setValue] = useState(0);
+    return [() => setValue(value + 1), value];
+  }
+  const [forceUpdate, forceUpdateId] = useForceUpdate();
 
   const getCompletedTasksForToday = (allTasks: Task[]): number => {
     let result = 0;
@@ -69,7 +74,8 @@ const Tasks = ({ tasks, setTasks, db }: {
 }
 
 const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, task: Task, i: number): void => {
-  const newTasks: Task[] = tasks.map((originalTask: Task, j: number) => {
+  const newTasks: Task[] = [];
+  tasks.forEach((originalTask: Task, j: number) => {
     if (j === i) {
       const newTask: Task = {
         name: originalTask.name,
@@ -78,11 +84,13 @@ const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Rea
         about: originalTask.about,
         order: originalTask.order,
       };
-      pushTaskToDB(db, newTask);
-      return newTask;
+      console.log(`handleTaskPress: pushing task ${task.name} to db`);
+      pushTaskToDB(db, newTask, () => { console.log('handleTaskPress pushTaskToDB callback done'); });
+      newTasks.push(newTask);
     }
-    return originalTask;
+    newTasks.push(originalTask);
   });
+  console.log('handleTaskPress: getting all tasks from db');
   newTasks.sort((a: Task, b: Task) => a.order - b.order);
   getTaskHistoryFromDB(db, (retrievedTasksFromDB: Task[]) => {
     if (!retrievedTasksFromDB) {
@@ -103,7 +111,7 @@ const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Re
       about: originalTask.about,
       order: originalTask.order,
     };
-    pushTaskToDB(db, newTask);
+    pushTaskToDB(db, newTask, () => { });
     return newTask;
   });
   newTasks.sort((a: Task, b: Task) => a.order - b.order);
@@ -115,6 +123,7 @@ const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Re
     retrievedTasksFromDB.sort((a: Task, b: Task) => a.order - b.order);
     setTasks(retrievedTasksFromDB);
   });
+
 }
 
 const styles = StyleSheet.create({

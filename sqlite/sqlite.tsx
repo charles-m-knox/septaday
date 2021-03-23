@@ -133,10 +133,11 @@ INSERT INTO phonebook2(name,phonenumber,validDate)
 */
 // const pushTaskQuery = `INSERT INTO history(id, completed, date) VALUES (?, ?, ?) ON CONFLICT(date, id) DO UPDATE SET completed=excluded.completed`;
 // insert into history(id, completed, date) VALUES ('e409699d-119e-4624-9e7d-e74b2659cf31', 1, 1616371200) ON CONFLICT(id, date) DO UPDATE SET completed=excluded.completed;
-export const pushTaskToDB = (db: SQLite.WebSQLDatabase, task: Task): void => {
+export const pushTaskToDB = (db: SQLite.WebSQLDatabase, task: Task, callback: any): void => {
+    console.log(`pushTaskToDB: starting ${task.name}`);
     if (db) {
         const dateInt = getDateInt();
-        console.log(`pushing ${task.id} to db`);
+        console.log(`pushTaskToDB pushing ${task.id} to db`);
         db.transaction(
             tx => {
                 console.log(`pushTaskToDB selecting ${task.id}`);
@@ -149,7 +150,10 @@ export const pushTaskToDB = (db: SQLite.WebSQLDatabase, task: Task): void => {
                         tx.executeSql(
                             'insert into history (id, completed, date) values (?, ?, ?)',
                             [task.id, task.completed, dateInt],
-                            (_, { rows }) => { console.log(`inserted history item for today ${task.id}, rows: ${rows}`); },
+                            (_, { rows }) => {
+                                console.log(`inserted history item for today ${task.name}, rows: ${rows}`);
+                                callback();
+                            },
                         );
                     },
                 )
@@ -181,7 +185,7 @@ export const pushTaskToDB = (db: SQLite.WebSQLDatabase, task: Task): void => {
 export const addTaskToDB = (db: SQLite.WebSQLDatabase, task: Task): void => {
     if (db) {
         const dateInt = getDateInt();
-        console.log(`pushing ${task.id} to db`);
+        console.log(`addTaskToDB pushing ${task.id} to db`);
         db.transaction(
             tx => {
                 tx.executeSql(
