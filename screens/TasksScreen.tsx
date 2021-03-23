@@ -22,10 +22,9 @@ export default function TasksScreen(): JSX.Element {
 
   // https://css-tricks.com/run-useeffect-only-once/
   React.useEffect(() => {
-    initializeDB(db, tasks, setTasks);
-    getTaskHistoryFromDB(db, setTasks);
+    initializeDB(db, tasks, setTasks, () => { getTaskHistoryFromDB(db, setTasks); });
     return () => { }
-  }, [])
+  }, []);
 
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>

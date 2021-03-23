@@ -13,10 +13,11 @@ const Tasks = ({ tasks, setTasks, db }: {
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
   db: SQLite.WebSQLDatabase,
 }): JSX.Element => {
-  // const useForceUpdate = () => {
-  //   const [value, setValue] = useState(0);
-  //   return [() => setValue(value + 1), value];
-  // }
+  const useForceUpdate = () => {
+    console.log("useForceUpdate called");
+    // const [value, setValue] = useState(0);
+    // return [() => setValue(value + 1), value];
+  }
   // const [forceUpdate, forceUpdateId] = useForceUpdate();
 
   const getCompletedTasksForToday = (allTasks: Task[]): number => {
@@ -63,7 +64,7 @@ const Tasks = ({ tasks, setTasks, db }: {
         tasks.map((task: Task, i: number): JSX.Element => {
           return (
             <View style={styles.taskContainer} key={`task-${task.id ? task.id : i}`}>
-              <TouchableOpacity onPress={() => { handleTaskPress(db, tasks, setTasks, task, i); }} style={styles.helpLink}>
+              <TouchableOpacity onPress={() => { handleTaskPress(db, tasks, setTasks, task, i, useForceUpdate); }} style={styles.helpLink}>
                 <Text style={styles.taskText} lightColor={Colors.light.tint}>
                   {task.completed ? <Ionicons style={styles.circleIcon} name="md-checkmark-circle" size={24} color="green" /> : <Entypo style={styles.circleIcon} name="circle" size={24} color="black" />}
                   {task.name}
@@ -75,7 +76,7 @@ const Tasks = ({ tasks, setTasks, db }: {
       }
 
       <View style={styles.taskContainer}>
-        <TouchableOpacity onPress={() => { completeAllTasks(db, tasks, setTasks); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={() => { completeAllTasks(db, tasks, setTasks, useForceUpdate); }} style={styles.helpLink}>
           <Text style={styles.taskText} lightColor={Colors.light.tint}>
             Complete all of today's tasks.
           </Text>
@@ -83,7 +84,7 @@ const Tasks = ({ tasks, setTasks, db }: {
       </View>
 
       <View style={styles.taskContainer}>
-        <TouchableOpacity onPress={() => { getTaskHistoryFromDB(db, setTasks); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={() => { getTaskHistoryFromDB(db, setTasks, useForceUpdate); }} style={styles.helpLink}>
           <Text style={styles.taskText} lightColor={Colors.light.tint}>
             Refresh all data.
           </Text>
@@ -95,7 +96,7 @@ const Tasks = ({ tasks, setTasks, db }: {
 
 // handleTaskPress should update a single entry in the database to reflect the current task value, and then
 // only update that task in the react state.
-const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, task: Task, i: number): void => {
+const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, task: Task, i: number, useForceUpdate: any): void => {
   const newTasks: Task[] = [];
   tasks.forEach((originalTask: Task, j: number) => {
     if (j === i) {
@@ -114,11 +115,11 @@ const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Rea
   });
   pushTaskToDB(db, newTasks[i], () => {
     console.log('handleTaskPress pushTaskToDB callback done');
-    getTaskHistoryFromDB(db, setTasks);
+    getTaskHistoryFromDB(db, setTasks, useForceUpdate);
   });
 }
 
-const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>): void => {
+const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, useForceUpdate: any): void => {
   const newTasks: Task[] = tasks.map((originalTask: Task, j: number) => {
     const newTask: Task = {
       name: originalTask.name,
@@ -132,7 +133,7 @@ const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Re
   newTasks.sort((a: Task, b: Task) => a.order - b.order);
   pushTasksToDB(db, newTasks, () => {
     console.log('completeAllTasks: done');
-    getTaskHistoryFromDB(db, setTasks);
+    getTaskHistoryFromDB(db, setTasks, useForceUpdate);
   });
 }
 

@@ -27,7 +27,6 @@ export default function TabTwoScreen() {
     return () => { }
   }, [])
 
-
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
       <View style={styles.container}>
