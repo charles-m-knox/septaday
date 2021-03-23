@@ -6,18 +6,18 @@ import { Text, View } from './Themed';
 import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import * as SQLite from 'expo-sqlite';
-import { getTaskHistoryFromDB, pushTaskToDB } from '../sqlite/sqlite';
+import { getTaskHistoryFromDB, initializeDB, pushTasksToDB, pushTaskToDB, resetDB } from '../sqlite/sqlite';
 
 const Tasks = ({ tasks, setTasks, db }: {
   tasks: Task[],
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
   db: SQLite.WebSQLDatabase,
 }): JSX.Element => {
-  const useForceUpdate = () => {
-    const [value, setValue] = useState(0);
-    return [() => setValue(value + 1), value];
-  }
-  const [forceUpdate, forceUpdateId] = useForceUpdate();
+  // const useForceUpdate = () => {
+  //   const [value, setValue] = useState(0);
+  //   return [() => setValue(value + 1), value];
+  // }
+  // const [forceUpdate, forceUpdateId] = useForceUpdate();
 
   const getCompletedTasksForToday = (allTasks: Task[]): number => {
     let result = 0;
@@ -28,6 +28,18 @@ const Tasks = ({ tasks, setTasks, db }: {
     });
     return result;
   }
+
+  // React.useEffect(() => {
+  // console.log('useEffect: getting all tasks from db');
+  // getTaskHistoryFromDB(db, (retrievedTasksFromDB: Task[]) => {
+  //   if (!retrievedTasksFromDB) {
+  //     return;
+  //   }
+  //   retrievedTasksFromDB.sort((a: Task, b: Task) => a.order - b.order);
+  //   setTasks(retrievedTasksFromDB);
+  // });
+  // return () => { }
+  // });
 
   return (
     <View style={styles.container}>
@@ -50,7 +62,7 @@ const Tasks = ({ tasks, setTasks, db }: {
       {
         tasks.map((task: Task, i: number): JSX.Element => {
           return (
-            <View style={styles.taskContainer} key={`task-${task.id}`}>
+            <View style={styles.taskContainer} key={`task-${task.id ? task.id : i}`}>
               <TouchableOpacity onPress={() => { handleTaskPress(db, tasks, setTasks, task, i); }} style={styles.helpLink}>
                 <Text style={styles.taskText} lightColor={Colors.light.tint}>
                   {task.completed ? <Ionicons style={styles.circleIcon} name="md-checkmark-circle" size={24} color="green" /> : <Entypo style={styles.circleIcon} name="circle" size={24} color="black" />}
@@ -69,10 +81,20 @@ const Tasks = ({ tasks, setTasks, db }: {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <View style={styles.taskContainer}>
+        <TouchableOpacity onPress={() => { getTaskHistoryFromDB(db, setTasks); }} style={styles.helpLink}>
+          <Text style={styles.taskText} lightColor={Colors.light.tint}>
+            Refresh all data.
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View >
   );
 }
 
+// handleTaskPress should update a single entry in the database to reflect the current task value, and then
+// only update that task in the react state.
 const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, task: Task, i: number): void => {
   const newTasks: Task[] = [];
   tasks.forEach((originalTask: Task, j: number) => {
@@ -85,20 +107,14 @@ const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Rea
         order: originalTask.order,
       };
       console.log(`handleTaskPress: pushing task ${task.name} to db`);
-      pushTaskToDB(db, newTask, () => { console.log('handleTaskPress pushTaskToDB callback done'); });
       newTasks.push(newTask);
+      return;
     }
     newTasks.push(originalTask);
   });
-  console.log('handleTaskPress: getting all tasks from db');
-  newTasks.sort((a: Task, b: Task) => a.order - b.order);
-  getTaskHistoryFromDB(db, (retrievedTasksFromDB: Task[]) => {
-    if (!retrievedTasksFromDB) {
-      setTasks(newTasks);
-      return;
-    }
-    retrievedTasksFromDB.sort((a: Task, b: Task) => a.order - b.order);
-    setTasks(retrievedTasksFromDB);
+  pushTaskToDB(db, newTasks[i], () => {
+    console.log('handleTaskPress pushTaskToDB callback done');
+    getTaskHistoryFromDB(db, setTasks);
   });
 }
 
@@ -111,19 +127,13 @@ const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Re
       about: originalTask.about,
       order: originalTask.order,
     };
-    pushTaskToDB(db, newTask, () => { });
     return newTask;
   });
   newTasks.sort((a: Task, b: Task) => a.order - b.order);
-  getTaskHistoryFromDB(db, (retrievedTasksFromDB: Task[]) => {
-    if (!retrievedTasksFromDB) {
-      setTasks(newTasks);
-      return;
-    }
-    retrievedTasksFromDB.sort((a: Task, b: Task) => a.order - b.order);
-    setTasks(retrievedTasksFromDB);
+  pushTasksToDB(db, newTasks, () => {
+    console.log('completeAllTasks: done');
+    getTaskHistoryFromDB(db, setTasks);
   });
-
 }
 
 const styles = StyleSheet.create({

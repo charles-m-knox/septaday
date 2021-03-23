@@ -5,8 +5,10 @@ import { Text, View } from './Themed';
 import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import { Task } from '../models/Task';
+import * as SQLite from 'expo-sqlite';
 
-const AboutSection = ({ tasks, setTasks }: {
+const AboutSection = ({ db, tasks, setTasks }: {
+  db: SQLite.WebSQLDatabase,
   tasks: Task[],
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>
 }): JSX.Element => {
@@ -18,13 +20,13 @@ const AboutSection = ({ tasks, setTasks }: {
           style={styles.aboutText}
           lightColor="rgba(0,0,0,0.8)"
           darkColor="rgba(255,255,255,0.8)">
-          You have a better chance at leading a healthy, successful life if you accomplish a routine set of tasks. These 7 tasks will help you form the basis for a disciplined, daily routine that will very likely shape you into a better person.
+          You have a better chance at leading a healthy, successful life if you accomplish an easy, routine set of tasks every day. These 7 tasks will help you form the basis for a disciplined, daily routine that will very likely shape you into a better person.
         </Text>
       </View>
       {
         tasks.map((task: Task, i: number): JSX.Element => {
           return (
-            <View style={styles.taskContainer} key={`task-${task.id}`}>
+            <View style={styles.taskContainer} key={`task-about-${task.id ? task.id : i}`}>
               <TouchableOpacity onPress={() => { /* handleTaskPress(tasks, setTasks, task, i);  */ }} style={styles.helpLink}>
                 <Text style={styles.taskTextBold} lightColor={Colors.light.tint}>
                   {task.name}
