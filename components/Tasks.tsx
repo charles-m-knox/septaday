@@ -5,10 +5,13 @@ import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
+import * as SQLite from 'expo-sqlite';
+import { getTaskHistoryFromDB, pushTaskToDB } from '../sqlite/sqlite';
 
-const Tasks = ({ tasks, setTasks }: {
+const Tasks = ({ tasks, setTasks, db }: {
   tasks: Task[],
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
+  db: SQLite.WebSQLDatabase,
 }): JSX.Element => {
 
   const getCompletedTasksForToday = (allTasks: Task[]): number => {
@@ -43,7 +46,7 @@ const Tasks = ({ tasks, setTasks }: {
         tasks.map((task: Task, i: number): JSX.Element => {
           return (
             <View style={styles.taskContainer} key={`task-${task.id}`}>
-              <TouchableOpacity onPress={() => { handleTaskPress(tasks, setTasks, task, i); }} style={styles.helpLink}>
+              <TouchableOpacity onPress={() => { handleTaskPress(db, tasks, setTasks, task, i); }} style={styles.helpLink}>
                 <Text style={styles.taskText} lightColor={Colors.light.tint}>
                   {task.completed ? <Ionicons style={styles.circleIcon} name="md-checkmark-circle" size={24} color="green" /> : <Entypo style={styles.circleIcon} name="circle" size={24} color="black" />}
                   {task.name}
@@ -65,7 +68,7 @@ const Tasks = ({ tasks, setTasks }: {
   );
 }
 
-const handleTaskPress = (tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, task: Task, i: number): void => {
+const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, task: Task, i: number): void => {
   const newTasks: Task[] = tasks.map((originalTask: Task, j: number) => {
     if (j === i) {
       const newTask: Task = {
@@ -73,12 +76,23 @@ const handleTaskPress = (tasks: Task[], setTasks: React.Dispatch<React.SetStateA
         id: originalTask.id,
         completed: !originalTask.completed,
         about: originalTask.about,
+        order: originalTask.order,
       };
+      pushTaskToDB(db, newTask);
       return newTask;
     }
+    // pushTaskToDB(db, originalTask);
     return originalTask;
   });
-  setTasks(newTasks);
+  newTasks.sort((a: Task, b: Task) => a.order - b.order);
+  getTaskHistoryFromDB(db, (retrievedTasksFromDB: Task[]) => {
+    if (!retrievedTasksFromDB) {
+      setTasks(newTasks);
+      return;
+    }
+    retrievedTasksFromDB.sort((a: Task, b: Task) => a.order - b.order);
+    setTasks(retrievedTasksFromDB);
+  });
 }
 
 const completeAllTasks = (tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>): void => {

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { StyleSheet } from 'react-native';
-
 import AboutSection from '../components/About';
 import { Text, View } from '../components/Themed';
 

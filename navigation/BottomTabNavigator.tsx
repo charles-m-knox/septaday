@@ -38,7 +38,7 @@ export default function BottomTabNavigator() {
 
 // You can explore the built-in icon families and icons on the web at:
 // https://icons.expo.fyi/
-function TabBarIcon(props: { name: React.ComponentProps<typeof Ionicons>['name']; color: string }) {
+const TabBarIcon = (props: { name: React.ComponentProps<typeof Ionicons>['name']; color: string }): JSX.Element => {
   return <Ionicons size={30} style={{ marginBottom: 3 }} {...props} />;
 }
 
@@ -46,7 +46,7 @@ function TabBarIcon(props: { name: React.ComponentProps<typeof Ionicons>['name']
 // https://reactnavigation.org/docs/tab-based-navigation#a-stack-navigator-for-each-tab
 const TasksScreenStack = createStackNavigator<TasksScreenParamList>();
 
-function TasksScreenNavigator() {
+const TasksScreenNavigator = (): JSX.Element => {
   return (
     <TasksScreenStack.Navigator>
       <TasksScreenStack.Screen
@@ -60,7 +60,7 @@ function TasksScreenNavigator() {
 
 const TabTwoStack = createStackNavigator<TabTwoParamList>();
 
-function TabTwoNavigator() {
+const TabTwoNavigator = (): JSX.Element => {
   return (
     <TabTwoStack.Navigator>
       <TabTwoStack.Screen
