@@ -87,39 +87,54 @@ export const getDateInt = (): number => {
     return (new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() - tzDiff) / 1000;
 }
 
+const todayTaskHistorySelectQuery = 'select * from history where id = ? and date = ?';
 export const initializeTodayTaskHistoryTx = (tx: SQLite.SQLTransaction, defaultTasks: Task[], tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>): void => {
     if (!tx) return;
     const dateInt = getDateInt();
     let completedTransactions = 0; // allows us to only proceed once the transaction is completely finished
     defaultTasks.forEach((task: Task, i: number) => {
         console.log(`initializeTodayTaskHistory selecting ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
-        tx.executeSql('select * from history where id = ? and date = ?',
-            [task.id, dateInt],
-            (tx: SQLTransaction, /* resultSet: SQLResultSet */ resultSet: any): void => {
-                const tasksArray = resultSet.rows['_array'];
-                console.log(`initializeTodayTaskHistoryTx returned ${tasksArray.length}`);
-                console.log(`initializeTodayTaskHistoryTx returned ${JSON.stringify(resultSet)}`);
-                if (tasksArray.length > 0) {
+        tx.executeSql(todayTaskHistorySelectQuery, [task.id, dateInt],
+            (tx: SQLTransaction, resultSet: SQLResultSet | any): void => {
+                let shouldCreateNewRow = true;
+                // on ios/mobile, resultSet is different, and contains _array
+                if (resultSet.rows['_array']) {
+                    if (resultSet && resultSet.rows['_array'] && resultSet.rows['_array'].length > 0) {
+                        shouldCreateNewRow = false;
+                    } else {
+                        shouldCreateNewRow = true;
+                    }
+                } else {
+                    // on other platforms (like web), the resultSet is different
+                    const tasksFromTx = Object.values(resultSet.rows);
+                    if (tasksFromTx && tasksFromTx.length > 0) {
+                        shouldCreateNewRow = false;
+                    } else {
+                        shouldCreateNewRow = true;
+                    }
+                }
+                if (shouldCreateNewRow === true) {
+                    console.log(`initializeTodayTaskHistory inserting for ${task.id}: ${completedTransactions}/${defaultTasks.length}`);
+                    tx.executeSql(
+                        'insert into history (id, completed, date) values (?, ?, ?)',
+                        [task.id, task.completed ? 1 : 0, dateInt],
+                        (_, { rows }) => {
+                            completedTransactions += 1;
+                            if (completedTransactions === defaultTasks.length) {
+                                console.log(`initializeTodayTaskHistory: finished inserting ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
+                                getTaskHistoryTx(tx, setTasks);
+                                return;
+                            }
+                            console.log(`initializeTodayTaskHistory: inserted ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
+                        },
+                        sqlErrCB
+                    );
+                } else {
                     // do nothing
                     completedTransactions += 1;
                     console.log(`initializeTodayTaskHistory: no need to insert ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
                     return;
                 }
-                console.log(`initializeTodayTaskHistory inserting for ${task.id}: ${tasksArray.length}, ${completedTransactions}/${defaultTasks.length}`);
-                tx.executeSql(
-                    'insert into history (id, completed, date) values (?, ?, ?)',
-                    [task.id, task.completed ? 1 : 0, dateInt],
-                    (_, { rows }) => {
-                        completedTransactions += 1;
-                        if (completedTransactions === defaultTasks.length) {
-                            console.log(`initializeTodayTaskHistory: finished inserting ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
-                            getTaskHistoryTx(tx, setTasks);
-                            return;
-                        }
-                        console.log(`initializeTodayTaskHistory: inserted ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
-                    },
-                    sqlErrCB
-                );
             },
             sqlErrCB
         )
@@ -203,13 +218,28 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Disp
     if (!tx) return;
     const dateInt = getDateInt();
     console.log(`getTaskHistoryFromDB: executing select sql`);
-    tx.executeSql(getTaskHistorySQL, [dateInt], (tx: SQLTransaction, /* resultSet: SQLResultSet */ resultSet: any): void => {
-        const tasksFromTx = resultSet.rows['_array'];
-        console.log(`getTaskHistoryFromDB returned ${tasksFromTx.length}`);
-        console.log(`getTaskHistoryFromDB returned ${JSON.stringify(resultSet)}`);
-        // marshal into a task array
-        setTasks(tasksFromTx.map((task: any, i: number) => {
-            return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, order: task.sortOrder, date: task.date };
-        }));
+    tx.executeSql(getTaskHistorySQL, [dateInt], (tx: SQLTransaction, resultSet: SQLResultSet | any): void => {
+        if (resultSet.rows['_array']) {
+            // if there is an '_array', it only works on mobile
+            const tasksFromTx = resultSet.rows['_array'];
+            console.log(`getTaskHistoryFromDB returned ${JSON.stringify(resultSet)} ${resultSet}`);
+            // console.log(`getTaskHistoryFromDB returned tx ${JSON.stringify(tx)} ${tx}`);
+            if (resultSet && resultSet.rows['_array'] && resultSet.rows['_array'].length > 0) {
+                setTasks(tasksFromTx.map((task: any, i: number) => {
+                    return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, order: task.sortOrder, date: task.date };
+                }));
+            }
+        } else {
+            // console.log(`getTaskHistoryFromDB returned ${tasksFromTx.length}`);
+            // console.log(`getTaskHistoryFromDB returned tx ${JSON.stringify(tx)} ${tx}`);
+            // console.log(`getTaskHistoryFromDB returned rows ${resultSet.rows} ${JSON.stringify(resultSet.rows[0])}`);
+
+            console.log(`getTaskHistoryFromDB returned ${JSON.stringify(resultSet)} ${resultSet}`);
+            const tasksFromTx = Object.values(resultSet.rows);
+            // marshal into a task array
+            setTasks(tasksFromTx.map((task: any, i: number) => {
+                return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, order: task.sortOrder, date: task.date };
+            }));
+        }
     }, sqlErrCB);
 }
