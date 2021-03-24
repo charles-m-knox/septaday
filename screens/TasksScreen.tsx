@@ -7,12 +7,13 @@ import { Task, defaultTasks } from '../models/Task';
 import * as SQLite from 'expo-sqlite';
 import { getDB, getTaskHistoryFromDB, initializeDB } from '../sqlite/sqlite';
 import { wait } from '../helpers/helpers';
+import useColorScheme from '../hooks/useColorScheme';
 
 export default function TasksScreen(): JSX.Element {
+  const colorScheme = useColorScheme();
   let db: SQLite.WebSQLDatabase = getDB();
   const [refreshing, setRefreshing] = React.useState(false);
   const [tasks, setTasks] = useState(defaultTasks);
-  const [retrievedInitialTasks, setRetrievedInitialTasks] = useState(false);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);

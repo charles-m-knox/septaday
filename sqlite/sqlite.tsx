@@ -213,7 +213,7 @@ export const getTaskHistoryFromDB = (db: SQLite.WebSQLDatabase, setTasks: React.
     );
 }
 
-const getTaskHistorySQL: string = `SELECT t.id, h.completed, t.name, t.sortOrder, h.date FROM tasks AS t LEFT JOIN history AS h on h.id = t.id WHERE h.date = ? ORDER BY t.sortOrder ASC`;
+const getTaskHistorySQL: string = `SELECT t.id, h.completed, t.name, t.about, t.sortOrder, h.date FROM tasks AS t LEFT JOIN history AS h on h.id = t.id WHERE h.date = ? ORDER BY t.sortOrder ASC`;
 export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Dispatch<React.SetStateAction<Task[]>>) => {
     if (!tx) return;
     const dateInt = getDateInt();
@@ -225,6 +225,7 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Disp
             console.log(`getTaskHistoryFromDB returned ${tasksFromTx.length} results`);
             if (resultSet && resultSet.rows['_array'] && resultSet.rows['_array'].length > 0) {
                 setTasks(tasksFromTx.map((task: any, i: number) => {
+                    console.log(task.about);
                     return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, order: task.sortOrder, date: task.date };
                 }));
             }

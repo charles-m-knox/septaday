@@ -7,12 +7,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import * as SQLite from 'expo-sqlite';
 import { getTaskHistoryFromDB, initializeDB, pushTasksToDB, pushTaskToDB, resetDB } from '../sqlite/sqlite';
+import useColorScheme from '../hooks/useColorScheme';
 
 const Tasks = ({ tasks, setTasks, db }: {
   tasks: Task[],
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
   db: SQLite.WebSQLDatabase,
 }): JSX.Element => {
+  const colorScheme = useColorScheme();
+
   const useForceUpdate = () => {
     console.log("useForceUpdate called");
     // const [value, setValue] = useState(0);
@@ -65,9 +68,8 @@ const Tasks = ({ tasks, setTasks, db }: {
           return (
             <View style={styles.taskContainer} key={`task-${task.id ? task.id : i}`}>
               <TouchableOpacity onPress={() => { handleTaskPress(db, tasks, setTasks, task, i, useForceUpdate); }} style={styles.helpLink}>
-                <Text style={styles.taskText} lightColor={Colors.light.tint}>
-                  {task.completed ? <Ionicons style={styles.circleIcon} name="md-checkmark-circle" size={24} color="green" /> : <Entypo style={styles.circleIcon} name="circle" size={24} color="black" />}
-                  {task.name}
+                <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
+                  {task.completed ? <Ionicons style={styles.circleIcon} name="md-checkmark-circle" size={18} color={Colors[colorScheme].success} /> : <Entypo style={styles.circleIcon} name="circle" size={18} color={Colors[colorScheme].tint} />}  {task.name}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -77,7 +79,7 @@ const Tasks = ({ tasks, setTasks, db }: {
 
       <View style={styles.taskContainer}>
         <TouchableOpacity onPress={() => { completeAllTasks(db, tasks, setTasks, useForceUpdate); }} style={styles.helpLink}>
-          <Text style={styles.taskText} lightColor={Colors.light.tint}>
+          <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
             Complete all of today's tasks.
           </Text>
         </TouchableOpacity>
@@ -85,7 +87,7 @@ const Tasks = ({ tasks, setTasks, db }: {
 
       <View style={styles.taskContainer}>
         <TouchableOpacity onPress={() => { getTaskHistoryFromDB(db, setTasks, useForceUpdate); }} style={styles.helpLink}>
-          <Text style={styles.taskText} lightColor={Colors.light.tint}>
+          <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
             Refresh all data.
           </Text>
         </TouchableOpacity>

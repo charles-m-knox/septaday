@@ -45,7 +45,7 @@ const AboutSection = ({ db, tasks, setTasks }: {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 24,
+    // paddingHorizontal: 24,
     maxWidth: "66%",
   },
   circleIcon: {
