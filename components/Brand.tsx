@@ -31,7 +31,7 @@ const BrandView = (): JSX.Element => {
         </Text>
       </View>
       <View>
-        <TouchableOpacity onPress={handleHelpPress} style={styles.helpLink}>
+        <TouchableOpacity onPress={handleHelpPress} style={styles.aboutText}>
           <Text lightColor={Colors.light.tint}>
             You can tap here or on the logo above to visit my website, https://charlesmknox.com.
           </Text>

@@ -217,12 +217,12 @@ const getTaskHistorySQL: string = `SELECT t.id, h.completed, t.name, t.about, t.
 export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Dispatch<React.SetStateAction<Task[]>>) => {
     if (!tx) return;
     const dateInt = getDateInt();
-    console.log(`getTaskHistoryFromDB: executing select sql`);
+    console.log(`getTaskHistoryTx: executing select sql`);
     tx.executeSql(getTaskHistorySQL, [dateInt], (tx: SQLTransaction, resultSet: SQLResultSet | any): void => {
         if (resultSet.rows['_array']) {
             // if there is an '_array', it only works on mobile
             const tasksFromTx = resultSet.rows['_array'];
-            console.log(`getTaskHistoryFromDB returned ${tasksFromTx.length} results`);
+            console.log(`getTaskHistoryTx returned ${tasksFromTx.length} results`);
             if (resultSet && resultSet.rows['_array'] && resultSet.rows['_array'].length > 0) {
                 setTasks(tasksFromTx.map((task: any, i: number) => {
                     return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, order: task.sortOrder, date: task.date };
@@ -230,11 +230,45 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Disp
             }
         } else {
             const tasksFromTx = Object.values(resultSet.rows);
-            console.log(`getTaskHistoryFromDB returned ${tasksFromTx.length} results`);
+            console.log(`getTaskHistoryTx returned ${tasksFromTx.length} results`);
             // marshal into a task array
             setTasks(tasksFromTx.map((task: any, i: number) => {
                 return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, order: task.sortOrder, date: task.date };
             }));
+        }
+    }, sqlErrCB);
+}
+
+export const getQueriesFromDB = (db: SQLite.WebSQLDatabase, queries: string[], callbacks: any[], txEndCallback?: any) => {
+    if (!db) return;
+    db.transaction(
+        tx => {
+            queries.forEach((query: string, i: number) => {
+                getQueryTx(tx, query, callbacks[i]);
+            })
+        },
+        (error: SQLite.SQLError): void => { console.log(`getQueriesFromDB: err callback: ${error.code} ${error.message}`); },
+        (): void => { console.log(`getQueriesFromDB: void callback`); if (txEndCallback) txEndCallback(); }
+    );
+}
+
+export const getTaskStatsSQL: string = `SELECT completed FROM history`;
+export const getTaskDaysSQL: string = `SELECT DISTINCT(date) as date FROM history ORDER BY date`;
+export const getQueryTx = (tx: SQLite.SQLTransaction, query: string, callback: any) => {
+    if (!tx) return;
+    console.log(`getQueryTx: ${query}`);
+    tx.executeSql(query, [], (tx: SQLTransaction, resultSet: SQLResultSet | any): void => {
+        if (resultSet.rows['_array']) {
+            // if there is an '_array', it only works on mobile
+            const txResults = resultSet.rows['_array'];
+            console.log(`getQueryTx returned ${txResults.length} results`);
+            if (resultSet && resultSet.rows['_array'] && resultSet.rows['_array'].length > 0) {
+                callback(txResults);
+            }
+        } else {
+            const tasksFromTx = Object.values(resultSet.rows);
+            console.log(`getQueryTx returned ${tasksFromTx.length} results`);
+            callback(tasksFromTx);
         }
     }, sqlErrCB);
 }
