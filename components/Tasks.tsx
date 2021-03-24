@@ -86,7 +86,7 @@ const Tasks = ({ tasks, setTasks, db }: {
       </View>
 
       <View style={styles.taskContainer}>
-        <TouchableOpacity onPress={() => { getTaskHistoryFromDB(db, setTasks, useForceUpdate); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={() => { getTaskHistoryFromDB(db, setTasks, 0, useForceUpdate); }} style={styles.helpLink}>
           <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
             Refresh all data.
           </Text>
@@ -117,7 +117,7 @@ const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Rea
   });
   pushTaskToDB(db, newTasks[i], () => {
     console.log('handleTaskPress pushTaskToDB callback done');
-    getTaskHistoryFromDB(db, setTasks, useForceUpdate);
+    getTaskHistoryFromDB(db, setTasks, 0, useForceUpdate);
   });
 }
 
@@ -135,7 +135,7 @@ const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Re
   newTasks.sort((a: Task, b: Task) => a.order - b.order);
   pushTasksToDB(db, newTasks, () => {
     console.log('completeAllTasks: done');
-    getTaskHistoryFromDB(db, setTasks, useForceUpdate);
+    getTaskHistoryFromDB(db, setTasks, 0, useForceUpdate);
   });
 }
 

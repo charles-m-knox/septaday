@@ -29,7 +29,7 @@ export default function TabTwoScreen() {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
-    getTaskHistoryFromDB(db, setTasks, () => {
+    getTaskHistoryFromDB(db, setTasks, 0, () => {
       getStats(() => {
         setRefreshing(false);
       });
@@ -38,7 +38,7 @@ export default function TabTwoScreen() {
 
   // https://css-tricks.com/run-useeffect-only-once/
   React.useEffect(() => {
-    getTaskHistoryFromDB(db, setTasks, () => { getStats() });
+    getTaskHistoryFromDB(db, setTasks, 0, () => { getStats() });
     return () => { }
   }, [])
 
@@ -74,7 +74,7 @@ export default function TabTwoScreen() {
   useFocusEffect(
     React.useCallback(() => {
       // Do something when the tab is opened
-      getTaskHistoryFromDB(db, setTasks, () => {
+      getTaskHistoryFromDB(db, setTasks, 0, () => {
         getStats(() => {
           setRefreshing(false);
         });

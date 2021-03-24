@@ -205,18 +205,18 @@ export const resetDB = (db: SQLite.WebSQLDatabase, txEndCallback?: any) => {
     }
 }
 
-export const getTaskHistoryFromDB = (db: SQLite.WebSQLDatabase, setTasks: React.Dispatch<React.SetStateAction<Task[]>>, txEndCallback?: any) => {
+export const getTaskHistoryFromDB = (db: SQLite.WebSQLDatabase, setTasks: React.Dispatch<React.SetStateAction<Task[]>>, forDateInt?: number, txEndCallback?: any) => {
     if (!db) return;
-    db.transaction(tx => getTaskHistoryTx(tx, setTasks),
+    db.transaction(tx => getTaskHistoryTx(tx, setTasks, forDateInt),
         (error: SQLite.SQLError): void => { console.log(`getTaskHistoryFromDB: err callback: ${error.code} ${error.message}`); },
         (): void => { console.log(`getTaskHistoryFromDB: void callback`); if (txEndCallback) txEndCallback(); }
     );
 }
 
 const getTaskHistorySQL: string = `SELECT t.id, h.completed, t.name, t.about, t.sortOrder, h.date FROM tasks AS t LEFT JOIN history AS h on h.id = t.id WHERE h.date = ? ORDER BY t.sortOrder ASC`;
-export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Dispatch<React.SetStateAction<Task[]>>) => {
+export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Dispatch<React.SetStateAction<Task[]>>, forDateInt?: number) => {
     if (!tx) return;
-    const dateInt = getDateInt();
+    const dateInt = forDateInt ? forDateInt : getDateInt();
     console.log(`getTaskHistoryTx: executing select sql`);
     tx.executeSql(getTaskHistorySQL, [dateInt], (tx: SQLTransaction, resultSet: SQLResultSet | any): void => {
         if (resultSet.rows['_array']) {

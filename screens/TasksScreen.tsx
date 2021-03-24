@@ -18,7 +18,7 @@ export default function TasksScreen(): JSX.Element {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
-    getTaskHistoryFromDB(db, setTasks, () => { setRefreshing(false); });
+    getTaskHistoryFromDB(db, setTasks, 0, () => { setRefreshing(false); });
   }, []);
 
   // https://css-tricks.com/run-useeffect-only-once/
