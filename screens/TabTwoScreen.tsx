@@ -9,6 +9,7 @@ import * as SQLite from 'expo-sqlite';
 import { getDB, getTaskHistoryFromDB } from '../sqlite/sqlite';
 import { Task, defaultTasks } from '../models/Task';
 import { wait } from '../helpers/helpers';
+import BrandView from '../components/Brand';
 
 export default function TabTwoScreen() {
   let db: SQLite.WebSQLDatabase = getDB();
@@ -33,6 +34,11 @@ export default function TabTwoScreen() {
         <Text style={styles.title}>About</Text>
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
         <AboutSection db={db} tasks={tasks} setTasks={setTasks} />
+      </View>
+      <View style={styles.container}>
+        <Text style={styles.title}>App</Text>
+        <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+        <BrandView />
       </View>
       <View style={styles.container}>
         <Text style={styles.title}>Data</Text>

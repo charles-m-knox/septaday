@@ -225,7 +225,6 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Disp
             console.log(`getTaskHistoryFromDB returned ${tasksFromTx.length} results`);
             if (resultSet && resultSet.rows['_array'] && resultSet.rows['_array'].length > 0) {
                 setTasks(tasksFromTx.map((task: any, i: number) => {
-                    console.log(task.about);
                     return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, order: task.sortOrder, date: task.date };
                 }));
             }

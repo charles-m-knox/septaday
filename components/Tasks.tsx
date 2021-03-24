@@ -69,7 +69,7 @@ const Tasks = ({ tasks, setTasks, db }: {
             <View style={styles.taskContainer} key={`task-${task.id ? task.id : i}`}>
               <TouchableOpacity onPress={() => { handleTaskPress(db, tasks, setTasks, task, i, useForceUpdate); }} style={styles.helpLink}>
                 <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
-                  {task.completed ? <Ionicons style={styles.circleIcon} name="md-checkmark-circle" size={18} color={Colors[colorScheme].success} /> : <Entypo style={styles.circleIcon} name="circle" size={18} color={Colors[colorScheme].tint} />}  {task.name}
+                  {task.completed ? <Ionicons style={styles.circleIcon} name="md-checkmark-circle" size={18} color={Colors[colorScheme].success} /> : <Entypo style={styles.circleIcon} name="circle" size={18} color={Colors[colorScheme].text} />}  {task.name}
                 </Text>
               </TouchableOpacity>
             </View>
