@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { StyleSheet, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import { StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import AboutSection from '../components/About';
 import DataControls from '../components/DataControls';
-import { Text, View } from '../components/Themed';
+import { Text, View, ScrollView } from '../components/Themed';
 import Colors from '../constants/Colors';
 import * as SQLite from 'expo-sqlite';
 import { getDB, getTaskHistoryFromDB } from '../sqlite/sqlite';
@@ -18,7 +18,7 @@ export default function TabTwoScreen() {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
-    getTaskHistoryFromDB(db, setTasks);
+    getTaskHistoryFromDB(db, setTasks, () => { setRefreshing(false); });
   }, []);
 
   // https://css-tricks.com/run-useeffect-only-once/

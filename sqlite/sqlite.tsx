@@ -222,20 +222,15 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Disp
         if (resultSet.rows['_array']) {
             // if there is an '_array', it only works on mobile
             const tasksFromTx = resultSet.rows['_array'];
-            console.log(`getTaskHistoryFromDB returned ${JSON.stringify(resultSet)} ${resultSet}`);
-            // console.log(`getTaskHistoryFromDB returned tx ${JSON.stringify(tx)} ${tx}`);
+            console.log(`getTaskHistoryFromDB returned ${tasksFromTx.length} results`);
             if (resultSet && resultSet.rows['_array'] && resultSet.rows['_array'].length > 0) {
                 setTasks(tasksFromTx.map((task: any, i: number) => {
                     return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, order: task.sortOrder, date: task.date };
                 }));
             }
         } else {
-            // console.log(`getTaskHistoryFromDB returned ${tasksFromTx.length}`);
-            // console.log(`getTaskHistoryFromDB returned tx ${JSON.stringify(tx)} ${tx}`);
-            // console.log(`getTaskHistoryFromDB returned rows ${resultSet.rows} ${JSON.stringify(resultSet.rows[0])}`);
-
-            console.log(`getTaskHistoryFromDB returned ${JSON.stringify(resultSet)} ${resultSet}`);
             const tasksFromTx = Object.values(resultSet.rows);
+            console.log(`getTaskHistoryFromDB returned ${tasksFromTx.length} results`);
             // marshal into a task array
             setTasks(tasksFromTx.map((task: any, i: number) => {
                 return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, order: task.sortOrder, date: task.date };
