@@ -108,6 +108,7 @@ const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Rea
         completed: !originalTask.completed,
         about: originalTask.about,
         order: originalTask.order,
+        link: originalTask.link,
       };
       console.log(`handleTaskPress: pushing task ${task.name} to db`);
       newTasks.push(newTask);
@@ -129,6 +130,7 @@ const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Re
       completed: true,
       about: originalTask.about,
       order: originalTask.order,
+      link: originalTask.link,
     };
     return newTask;
   });

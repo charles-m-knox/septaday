@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import { Task } from '../models/Task';
 import * as SQLite from 'expo-sqlite';
+import * as WebBrowser from 'expo-web-browser';
 
 const AboutSection = ({ db, tasks, setTasks }: {
   db: SQLite.WebSQLDatabase,
@@ -64,6 +65,11 @@ const AboutSection = ({ db, tasks, setTasks }: {
     }).start(({ finished }) => { callback(finished); });
   };
 
+  const openURL = (link: string): void => {
+    if (!link) return;
+    WebBrowser.openBrowserAsync(link);
+  }
+
   return (
     <View style={styles.container}>
       <View>
@@ -78,7 +84,7 @@ const AboutSection = ({ db, tasks, setTasks }: {
         tasks.map((task: Task, i: number): JSX.Element => {
           return (
             <View style={styles.taskContainer} key={`task-about-${task.id ? task.id : i}`}>
-              <TouchableOpacity onPress={() => { fadeToggle(i); }} style={styles.helpLink}>
+              <TouchableOpacity onLongPress={() => { openURL(task.link); }} onPress={() => { fadeToggle(i); }} style={styles.helpLink}>
                 <Text style={styles.taskTextBold} lightColor={Colors.light.tint}>
                   More on: {task.name}
                 </Text>
@@ -86,6 +92,9 @@ const AboutSection = ({ db, tasks, setTasks }: {
                   style={[{ opacity: fadeAnims[i] }]}>
                   <Text style={[styles.taskText, !fadeStates[i] && { display: 'none' }]} lightColor={Colors.light.tint}>
                     {task.about}
+                  </Text>
+                  <Text style={[styles.taskTextLink, !fadeStates[i] && { display: 'none' }]} lightColor={Colors.light.tint}>
+                    For more info, long-press here to visit {task.link}.
                   </Text>
                 </Animated.View>
               </TouchableOpacity>
@@ -137,6 +146,10 @@ const styles = StyleSheet.create({
   },
   taskText: {
     textAlign: 'left',
+  },
+  taskTextLink: {
+    textAlign: 'left',
+    marginTop: 15,
   },
   taskTextBold: {
     textAlign: 'left',

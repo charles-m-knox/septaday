@@ -29,19 +29,23 @@ export const sqlErrCB = (tx: SQLTransaction, error: SQLError): boolean => {
     return false;
 }
 
-const initializeTasksDBQuery = 'create table if not exists tasks (id string primary key not null, name string, about text, sortOrder int);'
+const dropTasksDBQuery = 'drop table if exists tasks;'
+const initializeTasksDBQuery = 'create table if not exists tasks (id string primary key not null, name string, about text, link text, sortOrder int);'
 const initializeHistoryDBQuery = 'create table if not exists history (id string not null, completed int, date int);'
 
 export const initializeDB = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, txEndCallback?: any): void => {
     if (!db) return;
     db.transaction(
         tx => {
-            console.log(`initializeDB: creating tables`);
-            tx.executeSql(initializeTasksDBQuery, [], (tx: SQLTransaction, resultSet: SQLResultSet): void => {
-                console.log('created table tasks');
-                tx.executeSql(initializeHistoryDBQuery, [], (tx: SQLTransaction, resultSet: SQLResultSet): void => {
-                    console.log('created table history');
-                    initializeTasksTx(tx, defaultTasks, tasks, setTasks);
+            console.log(`initializeDB: dropping & creating tables`);
+            tx.executeSql(dropTasksDBQuery, [], (tx: SQLTransaction, resultSet: SQLResultSet): void => {
+                console.log('dropped table tasks');
+                tx.executeSql(initializeTasksDBQuery, [], (tx: SQLTransaction, resultSet: SQLResultSet): void => {
+                    console.log('created table tasks');
+                    tx.executeSql(initializeHistoryDBQuery, [], (tx: SQLTransaction, resultSet: SQLResultSet): void => {
+                        console.log('created table history');
+                        initializeTasksTx(tx, defaultTasks, tasks, setTasks);
+                    }, sqlErrCB);
                 }, sqlErrCB);
             }, sqlErrCB);
         },
@@ -56,8 +60,8 @@ export const initializeTasksTx = (tx: SQLite.SQLTransaction, defaultTasks: Task[
     defaultTasks.forEach((task: Task) => {
         console.log(`initializeTasks: pushing ${task.id} to db`);
         tx.executeSql(
-            'insert into tasks (id, name, about, sortOrder) values (?, ?, ?, ?)',
-            [task.id, task.name, task.about, task.order],
+            'insert into tasks (id, name, about, link, sortOrder) values (?, ?, ?, ?, ?)',
+            [task.id, task.name, task.about, task.link, task.order],
             (_, { rows }) => {
                 completedTransactions += 1;
                 console.log(`initializeTasks: inserted ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
@@ -213,7 +217,7 @@ export const getTaskHistoryFromDB = (db: SQLite.WebSQLDatabase, setTasks: React.
     );
 }
 
-const getTaskHistorySQL: string = `SELECT t.id, h.completed, t.name, t.about, t.sortOrder, h.date FROM tasks AS t LEFT JOIN history AS h on h.id = t.id WHERE h.date = ? ORDER BY t.sortOrder ASC`;
+const getTaskHistorySQL: string = `SELECT t.id, h.completed, t.name, t.about, t.link, t.sortOrder, h.date FROM tasks AS t LEFT JOIN history AS h on h.id = t.id WHERE h.date = ? ORDER BY t.sortOrder ASC`;
 export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Dispatch<React.SetStateAction<Task[]>>, forDateInt?: number) => {
     if (!tx) return;
     const dateInt = forDateInt ? forDateInt : getDateInt();
@@ -225,7 +229,7 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Disp
             console.log(`getTaskHistoryTx returned ${tasksFromTx.length} results`);
             if (resultSet && resultSet.rows['_array'] && resultSet.rows['_array'].length > 0) {
                 setTasks(tasksFromTx.map((task: any, i: number) => {
-                    return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, order: task.sortOrder, date: task.date };
+                    return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, link: task.link, order: task.sortOrder, date: task.date };
                 }));
             }
         } else {
@@ -233,7 +237,7 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Disp
             console.log(`getTaskHistoryTx returned ${tasksFromTx.length} results`);
             // marshal into a task array
             setTasks(tasksFromTx.map((task: any, i: number) => {
-                return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, order: task.sortOrder, date: task.date };
+                return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, link: task.link, order: task.sortOrder, date: task.date };
             }));
         }
     }, sqlErrCB);

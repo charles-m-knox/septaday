@@ -27,7 +27,7 @@ const BrandView = (): JSX.Element => {
       <View>
         <Text
           style={[styles.aboutText]}>
-          This app was developed by Charles M. Knox and will always be free. If it helps you find a better balance in life, then the mission has been accomplished. Good luck out there!
+          This app was developed by Charles M. Knox. If it helps you find a better balance in life, then the mission has been accomplished. Good luck out there!
         </Text>
       </View>
       <View>
