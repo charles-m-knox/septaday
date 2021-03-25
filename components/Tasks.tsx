@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
-import { Task } from '../models/Task';
+import { Alert, Platform, StyleSheet, TouchableOpacity } from 'react-native';
+import { defaultTasks, Task } from '../models/Task';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import * as SQLite from 'expo-sqlite';
-import { getTaskHistoryFromDB, initializeDB, pushTasksToDB, pushTaskToDB, resetDB } from '../sqlite/sqlite';
+import { dropTaskHistoryForDaySQL, getDateInt, getQueriesWithArgsFromDB, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB, initializeDB, pushTasksToDB, pushTaskToDB, resetDB } from '../sqlite/sqlite';
 import useColorScheme from '../hooks/useColorScheme';
+import { getSimpleDate } from '../helpers/helpers';
 
 const Tasks = ({ tasks, setTasks, db, viewTime }: {
   tasks: Task[],
@@ -57,6 +58,24 @@ const Tasks = ({ tasks, setTasks, db, viewTime }: {
   // return () => { }
   // });
 
+  const createTwoButtonAlert = (title: string, message: string, action: string, callback?: any): void => {
+    if (Platform.OS === "web") {
+      if (confirm(message)) {
+        callback();
+      }
+    } else {
+      Alert.alert(
+        title,
+        message,
+        [
+          { text: "Cancel", onPress: () => { }, style: "cancel" },
+          { text: action, onPress: () => { callback(); }, style: "destructive" }
+        ],
+        { cancelable: false }
+      );
+    }
+  }
+
   return (
     <View style={styles.container}>
       <View>
@@ -88,22 +107,64 @@ const Tasks = ({ tasks, setTasks, db, viewTime }: {
           )
         })
       }
+      {
+        tasks.length === 0 && (
+          <View style={styles.taskContainer}>
+            <TouchableOpacity onPress={() => { initializeDayTaskHistoryFromDB(db, defaultTasks, tasks, setTasks, viewTime) }} style={styles.helpLink}>
+              <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
+                There are no entries. Tap here to create fresh tasks for this day.
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )
+      }
 
-      <View style={styles.taskContainer}>
-        <TouchableOpacity onPress={() => { completeAllTasks(db, tasks, setTasks, viewTime, useForceUpdate); }} style={styles.helpLink}>
-          <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
-            Complete all of today's tasks.
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.taskContainer}>
-        <TouchableOpacity onPress={() => { getTaskHistoryFromDB(db, setTasks, viewTime, useForceUpdate); }} style={styles.helpLink}>
-          <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
-            Refresh all data.
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {
+        tasks.length > 0 && (
+          <React.Fragment>
+            <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+            <View style={styles.taskContainer}>
+              <TouchableOpacity onPress={() => { completeAllTasks(db, tasks, setTasks, viewTime, useForceUpdate); }} style={styles.helpLink}>
+                <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
+                  Complete all of today's tasks.
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {Platform.OS === 'web' && (<View style={styles.taskContainer}>
+              <TouchableOpacity onPress={() => { getTaskHistoryFromDB(db, setTasks, viewTime, useForceUpdate); }} style={styles.helpLink}>
+                <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
+                  Refresh all data.
+                </Text>
+              </TouchableOpacity>
+            </View>)}
+            <View style={styles.taskContainer}>
+              <TouchableOpacity
+                onPress={() => {
+                  createTwoButtonAlert(
+                    'Are you sure?',
+                    `Are you sure you want to delete the data for ${viewTime === getDateInt() ? 'Today' : getSimpleDate(viewTime)}?`,
+                    `Yes`,
+                    () => {
+                      getQueriesWithArgsFromDB(
+                        db,
+                        [dropTaskHistoryForDaySQL],
+                        [[viewTime]],
+                        [() => {
+                          console.log(`delete day ${viewTime} about to get task history from db`)
+                          getTaskHistoryFromDB(db, setTasks, viewTime, useForceUpdate);
+                        }]
+                      );
+                    }
+                  )
+                }} style={styles.helpLink}>
+                <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
+                  Delete this day's entries.
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </React.Fragment>
+        )
+      }
     </View >
   );
 }
@@ -174,6 +235,12 @@ const styles = StyleSheet.create({
   },
   taskText: {
     textAlign: 'left',
+  },
+  separator: {
+    marginTop: 15,
+    height: 1,
+    width: '80%',
+    minWidth: '80%',
   },
 });
 

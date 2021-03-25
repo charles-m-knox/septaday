@@ -240,7 +240,7 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Disp
             // if there is an '_array', it only works on mobile
             const tasksFromTx = resultSet.rows['_array'];
             console.log(`getTaskHistoryTx returned ${tasksFromTx.length} results`);
-            if (resultSet && resultSet.rows['_array'] && resultSet.rows['_array'].length > 0) {
+            if (resultSet && resultSet.rows['_array'] && Array.isArray(resultSet.rows['_array'])) {
                 setTasks(tasksFromTx.map((task: any, i: number) => {
                     return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, link: task.link, order: task.sortOrder, date: task.date };
                 }));
@@ -256,6 +256,10 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Disp
     }, sqlErrCB);
 }
 
+export const getTaskStatsSQL: string = `SELECT completed FROM history`;
+export const getTaskDaysSQL: string = `SELECT DISTINCT(date) as date FROM history ORDER BY date`;
+export const dropTaskHistoryForDaySQL: string = `DELETE FROM history WHERE date = ?`;
+
 export const getQueriesFromDB = (db: SQLite.WebSQLDatabase, queries: string[], callbacks: any[], txEndCallback?: any) => {
     if (!db) return;
     db.transaction(
@@ -264,13 +268,11 @@ export const getQueriesFromDB = (db: SQLite.WebSQLDatabase, queries: string[], c
                 getQueryTx(tx, query, callbacks[i]);
             })
         },
-        (error: SQLite.SQLError): void => { console.log(`getQueriesFromDB: err callback: ${error.code} ${error.message}`); },
-        (): void => { console.log(`getQueriesFromDB: void callback`); if (txEndCallback) txEndCallback(); }
+        (error: SQLite.SQLError): void => { console.log(`getQueriesWithArgsFromDB: err callback: ${error.code} ${error.message}`); },
+        (): void => { console.log(`getQueriesWithArgsFromDB: void callback`); if (txEndCallback) txEndCallback(); }
     );
 }
 
-export const getTaskStatsSQL: string = `SELECT completed FROM history`;
-export const getTaskDaysSQL: string = `SELECT DISTINCT(date) as date FROM history ORDER BY date`;
 export const getQueryTx = (tx: SQLite.SQLTransaction, query: string, callback: any) => {
     if (!tx) return;
     console.log(`getQueryTx: ${query}`);
@@ -285,6 +287,38 @@ export const getQueryTx = (tx: SQLite.SQLTransaction, query: string, callback: a
         } else {
             const tasksFromTx = Object.values(resultSet.rows);
             console.log(`getQueryTx returned ${tasksFromTx.length} results`);
+            callback(tasksFromTx);
+        }
+    }, sqlErrCB);
+}
+
+export const getQueriesWithArgsFromDB = (db: SQLite.WebSQLDatabase, queries: string[], args: any[][], callbacks: any[], txEndCallback?: any) => {
+    if (!db) return;
+    db.transaction(
+        tx => {
+            queries.forEach((query: string, i: number) => {
+                getQueryWithArgsTx(tx, query, args[i], callbacks[i]);
+            })
+        },
+        (error: SQLite.SQLError): void => { console.log(`getQueriesFromDB: err callback: ${error.code} ${error.message}`); },
+        (): void => { console.log(`getQueriesFromDB: void callback`); if (txEndCallback) txEndCallback(); }
+    );
+}
+
+export const getQueryWithArgsTx = (tx: SQLite.SQLTransaction, query: string, args: any[], callback: any) => {
+    if (!tx) return;
+    console.log(`getQueryWithArgsTx: ${query}`);
+    tx.executeSql(query, args, (tx: SQLTransaction, resultSet: SQLResultSet | any): void => {
+        if (resultSet.rows['_array']) {
+            // if there is an '_array', it only works on mobile
+            const txResults = resultSet.rows['_array'];
+            console.log(`getQueryWithArgsTx returned ${txResults.length} results`);
+            if (resultSet && txResults && Array.isArray(txResults)) {
+                callback(txResults);
+            }
+        } else {
+            const tasksFromTx = Object.values(resultSet.rows);
+            console.log(`getQueryWithArgsTx returned ${tasksFromTx.length} results`);
             callback(tasksFromTx);
         }
     }, sqlErrCB);

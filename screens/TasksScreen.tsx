@@ -21,7 +21,7 @@ export default function TasksScreen(): JSX.Element {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
-    getTaskHistoryFromDB(db, setTasks, 0, () => { setRefreshing(false); });
+    getTaskHistoryFromDB(db, setTasks, viewTime, () => { setRefreshing(false); });
   }, []);
 
   // https://css-tricks.com/run-useeffect-only-once/
@@ -33,10 +33,12 @@ export default function TasksScreen(): JSX.Element {
   React.useEffect(() => {
     console.log('viewTime changed');
     setRefreshing(true);
-    initializeDayTaskHistoryFromDB(db, defaultTasks, tasks, setTasks, viewTime, () => {
-      console.log(`viewTime initialized tasks for day ${viewTime}`);
-      getTaskHistoryFromDB(db, setTasks, viewTime, () => { setRefreshing(false); });
+    getTaskHistoryFromDB(db, setTasks, viewTime, () => {
+      setRefreshing(false);
     });
+    // initializeDayTaskHistoryFromDB(db, defaultTasks, tasks, setTasks, viewTime, () => {
+    //   console.log(`viewTime initialized tasks for day ${viewTime}`);
+    // });
     return () => { }
   }, [viewTime]);
 
@@ -46,7 +48,7 @@ export default function TasksScreen(): JSX.Element {
         <View style={styles.titleContainer}>
           <TouchableOpacity onPress={() => { setViewTime(getOffsetDaysFromInt(viewTime, 0)); }} >
             <Text style={styles.iconArrowDate}>
-              <Ionicons style={[]} name="arrow-back-circle" size={24} color={Colors[colorScheme].text} />
+              <Ionicons style={[]} name="arrow-back-circle" size={36} color={Colors[colorScheme].text} />
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => { setViewTime(getDateInt()); }} >
@@ -54,7 +56,7 @@ export default function TasksScreen(): JSX.Element {
           </TouchableOpacity>
           <TouchableOpacity onPress={() => { setViewTime(getOffsetDaysFromInt(viewTime, 2)); }} >
             <Text style={styles.iconArrowDate}>
-              <Ionicons style={[]} name="arrow-forward-circle" size={24} color={Colors[colorScheme].text} />
+              <Ionicons style={[]} name="arrow-forward-circle" size={36} color={Colors[colorScheme].text} />
             </Text>
           </TouchableOpacity>
         </View >
