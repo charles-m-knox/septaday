@@ -12,6 +12,7 @@ import { wait } from '../helpers/helpers';
 import BrandView from '../components/Brand';
 import Stats from '../components/Stats';
 import { useFocusEffect } from '@react-navigation/native';
+import NotificationControls from '../components/NotificationControls';
 
 export default function TabTwoScreen() {
 
@@ -103,6 +104,11 @@ export default function TabTwoScreen() {
         <Text style={styles.title}>App</Text>
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
         <BrandView />
+      </View>
+      <View style={styles.container}>
+        <Text style={styles.title}>Push Notifications</Text>
+        <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+        <NotificationControls db={db} />
       </View>
       <View style={styles.container}>
         <Text style={styles.title}>Data</Text>
