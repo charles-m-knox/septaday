@@ -9,10 +9,11 @@ import * as SQLite from 'expo-sqlite';
 import { getTaskHistoryFromDB, initializeDB, pushTasksToDB, pushTaskToDB, resetDB } from '../sqlite/sqlite';
 import useColorScheme from '../hooks/useColorScheme';
 
-const Tasks = ({ tasks, setTasks, db }: {
+const Tasks = ({ tasks, setTasks, db, viewTime }: {
   tasks: Task[],
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
   db: SQLite.WebSQLDatabase,
+  viewTime: number,
 }): JSX.Element => {
   const colorScheme = useColorScheme();
 
@@ -23,7 +24,7 @@ const Tasks = ({ tasks, setTasks, db }: {
   }
   // const [forceUpdate, forceUpdateId] = useForceUpdate();
 
-  const getCompletedTasksForToday = (allTasks: Task[]): number => {
+  const getCompletedTasksForDay = (allTasks: Task[]): number => {
     let result = 0;
     allTasks.forEach((task: Task) => {
       if (task.completed === true) {
@@ -32,6 +33,17 @@ const Tasks = ({ tasks, setTasks, db }: {
     });
     return result;
   }
+
+  React.useEffect(() => {
+    console.log('viewTime changed');
+    // setRefreshing(true);
+    // initializeDayTaskHistoryFromDB(db, defaultTasks, tasks, setTasks, viewTime, () => {
+    // console.log(`viewTime initialized tasks for day ${viewTime}`);
+    // getTaskHistoryFromDB(db, setTasks, viewTime, () => { setRefreshing(false); });
+    // });
+    return () => { }
+  }, [viewTime]);
+
 
   // React.useEffect(() => {
   // console.log('useEffect: getting all tasks from db');
@@ -60,14 +72,14 @@ const Tasks = ({ tasks, setTasks, db }: {
           style={styles.introductoryText}
           lightColor="rgba(0,0,0,0.8)"
           darkColor="rgba(255,255,255,0.8)">
-          You've completed {getCompletedTasksForToday(tasks)}/{tasks.length} tasks.
+          You've completed {getCompletedTasksForDay(tasks)}/{tasks.length} tasks.
         </Text>
       </View>
       {
         tasks.map((task: Task, i: number): JSX.Element => {
           return (
             <View style={styles.taskContainer} key={`task-${task.id ? task.id : i}`}>
-              <TouchableOpacity onPress={() => { handleTaskPress(db, tasks, setTasks, task, i, useForceUpdate); }} style={styles.helpLink}>
+              <TouchableOpacity onPress={() => { handleTaskPress(db, tasks, setTasks, task, i, viewTime, useForceUpdate); }} style={styles.helpLink}>
                 <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
                   {task.completed ? <Ionicons style={styles.circleIcon} name="md-checkmark-circle" size={18} color={Colors[colorScheme].success} /> : <Entypo style={styles.circleIcon} name="circle" size={18} color={Colors[colorScheme].text} />}  {task.name}
                 </Text>
@@ -78,7 +90,7 @@ const Tasks = ({ tasks, setTasks, db }: {
       }
 
       <View style={styles.taskContainer}>
-        <TouchableOpacity onPress={() => { completeAllTasks(db, tasks, setTasks, useForceUpdate); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={() => { completeAllTasks(db, tasks, setTasks, viewTime, useForceUpdate); }} style={styles.helpLink}>
           <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
             Complete all of today's tasks.
           </Text>
@@ -86,7 +98,7 @@ const Tasks = ({ tasks, setTasks, db }: {
       </View>
 
       <View style={styles.taskContainer}>
-        <TouchableOpacity onPress={() => { getTaskHistoryFromDB(db, setTasks, 0, useForceUpdate); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={() => { getTaskHistoryFromDB(db, setTasks, viewTime, useForceUpdate); }} style={styles.helpLink}>
           <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
             Refresh all data.
           </Text>
@@ -98,7 +110,7 @@ const Tasks = ({ tasks, setTasks, db }: {
 
 // handleTaskPress should update a single entry in the database to reflect the current task value, and then
 // only update that task in the react state.
-const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, task: Task, i: number, useForceUpdate: any): void => {
+const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, task: Task, i: number, viewTime: number, useForceUpdate: any): void => {
   const newTasks: Task[] = [];
   tasks.forEach((originalTask: Task, j: number) => {
     if (j === i) {
@@ -118,11 +130,11 @@ const handleTaskPress = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Rea
   });
   pushTaskToDB(db, newTasks[i], () => {
     console.log('handleTaskPress pushTaskToDB callback done');
-    getTaskHistoryFromDB(db, setTasks, 0, useForceUpdate);
-  });
+    getTaskHistoryFromDB(db, setTasks, viewTime, useForceUpdate);
+  }, viewTime);
 }
 
-const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, useForceUpdate: any): void => {
+const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, viewTime: number, useForceUpdate: any): void => {
   const newTasks: Task[] = tasks.map((originalTask: Task, j: number) => {
     const newTask: Task = {
       name: originalTask.name,
@@ -137,8 +149,8 @@ const completeAllTasks = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: Re
   newTasks.sort((a: Task, b: Task) => a.order - b.order);
   pushTasksToDB(db, newTasks, () => {
     console.log('completeAllTasks: done');
-    getTaskHistoryFromDB(db, setTasks, 0, useForceUpdate);
-  });
+    getTaskHistoryFromDB(db, setTasks, viewTime, useForceUpdate);
+  }, viewTime);
 }
 
 const styles = StyleSheet.create({

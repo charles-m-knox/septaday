@@ -1,19 +1,22 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { StyleSheet, RefreshControl, } from 'react-native';
+import { StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Tasks from '../components/Tasks';
 import { Text, View, ScrollView } from '../components/Themed';
 import { Task, defaultTasks } from '../models/Task';
 import * as SQLite from 'expo-sqlite';
-import { getDB, getTaskHistoryFromDB, initializeDB } from '../sqlite/sqlite';
-import { wait } from '../helpers/helpers';
+import { getDateInt, getDB, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB, initializeDB } from '../sqlite/sqlite';
+import { getDateFromInt, getHumanDate, getOffsetDaysFromInt, getSimpleDate, wait } from '../helpers/helpers';
 import useColorScheme from '../hooks/useColorScheme';
+import Colors from '../constants/Colors';
 
 export default function TasksScreen(): JSX.Element {
   const colorScheme = useColorScheme();
   let db: SQLite.WebSQLDatabase = getDB();
   const [refreshing, setRefreshing] = React.useState(false);
   const [tasks, setTasks] = useState(defaultTasks);
+  const [viewTime, setViewTime] = useState(getDateInt());
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -27,12 +30,36 @@ export default function TasksScreen(): JSX.Element {
     return () => { }
   }, []);
 
+  React.useEffect(() => {
+    console.log('viewTime changed');
+    setRefreshing(true);
+    initializeDayTaskHistoryFromDB(db, defaultTasks, tasks, setTasks, viewTime, () => {
+      console.log(`viewTime initialized tasks for day ${viewTime}`);
+      getTaskHistoryFromDB(db, setTasks, viewTime, () => { setRefreshing(false); });
+    });
+    return () => { }
+  }, [viewTime]);
+
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
       <View style={styles.container}>
-        <Text style={styles.title}>Today</Text>
+        <View style={styles.titleContainer}>
+          <TouchableOpacity onPress={() => { setViewTime(getOffsetDaysFromInt(viewTime, 0)); }} >
+            <Text style={styles.iconArrowDate}>
+              <Ionicons style={[]} name="arrow-back-circle" size={24} color={Colors[colorScheme].text} />
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setViewTime(getDateInt()); }} >
+            <Text style={styles.title}>{viewTime === getDateInt() ? 'Today' : getSimpleDate(viewTime)}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setViewTime(getOffsetDaysFromInt(viewTime, 2)); }} >
+            <Text style={styles.iconArrowDate}>
+              <Ionicons style={[]} name="arrow-forward-circle" size={24} color={Colors[colorScheme].text} />
+            </Text>
+          </TouchableOpacity>
+        </View >
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <Tasks tasks={tasks} setTasks={setTasks} db={db} />
+        <Tasks tasks={tasks} setTasks={setTasks} db={db} viewTime={viewTime} />
       </View >
     </ScrollView>
   );
@@ -45,9 +72,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 30,
   },
+  titleContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignContent: 'center',
+    justifyContent: 'space-around',
+    // paddingVertical: 30,
+  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  iconArrowDate: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    paddingHorizontal: 30,
   },
   separator: {
     marginVertical: 30,

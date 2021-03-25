@@ -41,7 +41,7 @@ const Stats = ({ db, dates, completions }: {
           style={styles.aboutText}
           lightColor="rgba(0,0,0,0.8)"
           darkColor="rgba(255,255,255,0.8)">
-          You have completed {getCompletionsSummary(completions)} tasks over a span of {dates.length} days. {dates && dates.length ? `Your journey to leading a more successful life started on ${getHumanDate(dates[0])}.` : ''}
+          You have completed {getCompletionsSummary(completions)} tasks over a span of {dates.length} day{dates.length === 1 ? '' : 's'}. {dates && dates.length ? `Your journey to leading a more successful life started on ${getHumanDate(dates[0])}.` : ''}
         </Text>
       </View>
     </View >
