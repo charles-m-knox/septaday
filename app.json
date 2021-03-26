@@ -4,8 +4,8 @@
     "slug": "septaday",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "icon": "./assets/images/icon_1024.png",
+    "scheme": "septaday",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
