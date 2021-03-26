@@ -55,7 +55,7 @@ const NotificationControls = ({ db }: {
           style={styles.aboutText}
           lightColor="rgba(0,0,0,0.8)"
           darkColor="rgba(255,255,255,0.8)">
-          Manage push notifications here.
+          Manage push notifications here. This is a placeholder for future push notification management features that are not implemented yet.
         </Text>
       </View>
       {/* <View style={{ alignItems: 'center', justifyContent: 'center' }}>

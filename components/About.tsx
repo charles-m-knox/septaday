@@ -80,6 +80,14 @@ const AboutSection = ({ db, tasks, setTasks }: {
           You have a better chance at leading a healthy, successful life if you accomplish an easy, routine set of tasks every day. These 7 tasks will help you form the basis for a disciplined, daily routine that will very likely shape you into a better person.
         </Text>
       </View>
+      <View>
+        <Text
+          style={[styles.aboutText, { marginTop: 15 }]}
+          lightColor="rgba(0,0,0,0.8)"
+          darkColor="rgba(255,255,255,0.8)">
+          Disclaimer: This app is not a substitute for proper medical and scientific advice from real doctors and professionals. The information presented should be considered anecdotal, and you should follow professional advice from qualified practitioners, scientists, and doctors whenever possible.
+        </Text>
+      </View>
       {
         tasks.map((task: Task, i: number): JSX.Element => {
           return (
