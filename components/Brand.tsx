@@ -37,8 +37,7 @@ const BrandView = (): JSX.Element => {
         </TouchableOpacity>
       </View>
       <View>
-        <Text
-          style={[styles.aboutText]}>
+        <Text style={[styles.aboutText]}>
           This app was developed by Charles M. Knox. If it helps you find a better balance in life, then the mission has been accomplished. Good luck out there!
         </Text>
       </View>
@@ -62,6 +61,10 @@ const BrandView = (): JSX.Element => {
 const styles = StyleSheet.create({
   container: {
     maxWidth: "66%",
+    width: "66%"
+  },
+  leftTextContainer: {
+    textAlign: 'left'
   },
   brandLogo: {
     width: 96,
