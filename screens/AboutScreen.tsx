@@ -15,7 +15,7 @@ import NotificationControls from '../components/NotificationControls';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 
-export default function TabTwoScreen() {
+export default function AboutScreen() {
   const colorScheme = useColorScheme();
   let db: SQLite.WebSQLDatabase = getDB();
   const [tasks, setTasks] = useState(defaultTasks);

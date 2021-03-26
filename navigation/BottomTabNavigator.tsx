@@ -6,8 +6,8 @@ import * as React from 'react';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import TasksScreen from '../screens/TasksScreen';
-import TabTwoScreen from '../screens/TabTwoScreen';
-import { BottomTabParamList, TasksScreenParamList as TasksScreenParamList, TabTwoParamList } from '../types';
+import AboutScreen from '../screens/AboutScreen';
+import { BottomTabParamList, TasksScreenParamList as TasksScreenParamList, AboutScreenParamList } from '../types';
 
 const BottomTab = createBottomTabNavigator<BottomTabParamList>();
 
@@ -26,8 +26,8 @@ export default function BottomTabNavigator() {
         }}
       />
       <BottomTab.Screen
-        name="TabTwo"
-        component={TabTwoNavigator}
+        name="About"
+        component={AboutScreenNavigator}
         options={{
           tabBarIcon: ({ color }) => <TabBarIcon name="ellipsis-horizontal-circle-sharp" color={color} />,
         }}
@@ -58,16 +58,16 @@ const TasksScreenNavigator = (): JSX.Element => {
   );
 }
 
-const TabTwoStack = createStackNavigator<TabTwoParamList>();
+const AboutScreenStack = createStackNavigator<AboutScreenParamList>();
 
-const TabTwoNavigator = (): JSX.Element => {
+const AboutScreenNavigator = (): JSX.Element => {
   return (
-    <TabTwoStack.Navigator>
-      <TabTwoStack.Screen
-        name="TabTwoScreen"
-        component={TabTwoScreen}
+    <AboutScreenStack.Navigator>
+      <AboutScreenStack.Screen
+        name="About"
+        component={AboutScreen}
         options={{ headerTitle: 'About' }}
       />
-    </TabTwoStack.Navigator>
+    </AboutScreenStack.Navigator>
   );
 }
