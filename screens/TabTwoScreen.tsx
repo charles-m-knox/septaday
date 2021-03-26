@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { StyleSheet, TouchableOpacity, RefreshControl, Platform } from 'react-native';
 import AboutSection from '../components/About';
 import DataControls from '../components/DataControls';
 import { Text, View, ScrollView } from '../components/Themed';
@@ -30,7 +30,7 @@ export default function TabTwoScreen() {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
-    getTaskHistoryFromDB(db, setTasks, 0, () => {
+    getTaskHistoryFromDB(db, (results: Task[]) => { setTasks(results); }, 0, () => {
       getStats(() => {
         setRefreshing(false);
       });
@@ -39,7 +39,7 @@ export default function TabTwoScreen() {
 
   // https://css-tricks.com/run-useeffect-only-once/
   React.useEffect(() => {
-    getTaskHistoryFromDB(db, setTasks, 0, () => { getStats() });
+    getTaskHistoryFromDB(db, (results: Task[]) => { setTasks(results); }, 0, () => { getStats() });
     return () => { }
   }, [])
 
@@ -75,7 +75,7 @@ export default function TabTwoScreen() {
   useFocusEffect(
     React.useCallback(() => {
       // Do something when the tab is opened
-      getTaskHistoryFromDB(db, setTasks, 0, () => {
+      getTaskHistoryFromDB(db, (results: Task[]) => { setTasks(results); }, 0, () => {
         getStats(() => {
           setRefreshing(false);
         });
@@ -105,11 +105,17 @@ export default function TabTwoScreen() {
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
         <BrandView />
       </View>
-      <View style={styles.container}>
-        <Text style={styles.title}>Push Notifications</Text>
-        <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <NotificationControls db={db} />
-      </View>
+      {
+        (Platform.OS === "ios" || Platform.OS === "android") && (
+          <React.Fragment>
+            <View style={styles.container}>
+              <Text style={styles.title}>Push Notifications</Text>
+              <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+              <NotificationControls db={db} />
+            </View>
+          </React.Fragment>
+        )
+      }
       <View style={styles.container}>
         <Text style={styles.title}>Data</Text>
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />

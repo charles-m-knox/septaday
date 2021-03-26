@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Constants from 'expo-constants';
 import { StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
@@ -9,15 +8,7 @@ import { Task } from '../models/Task';
 import * as SQLite from 'expo-sqlite';
 import { initializeDB, resetDB } from '../sqlite/sqlite';
 import * as Notifications from 'expo-notifications';
-import { Subscription } from '@unimodules/core';
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: true,
-  }),
-});
+import { registerForPushNotificationsAsync, scheduleCalendarPushNotification, schedulePushNotification, setAppBadge } from '../helpers/notifications';
 
 const NotificationControls = ({ db }: {
   db: SQLite.WebSQLDatabase,
@@ -29,20 +20,31 @@ const NotificationControls = ({ db }: {
   const notificationListener: any = useRef();
   const responseListener: any = useRef();
 
-  useEffect(() => {
-    registerForPushNotificationsAsync().then((token?: string) => setExpoPushToken(token ? token : ''));
+  const initializeNotifications = () => {
+    if (Platform.OS === "ios" || Platform.OS === "android") {
+      registerForPushNotificationsAsync().then((token?: string) => setExpoPushToken(token ? token : ''));
 
-    notificationListener.current = Notifications.addNotificationReceivedListener((notification: Notifications.Notification) => {
-      setNotification(notification);
-    });
+      notificationListener.current = Notifications.addNotificationReceivedListener((notification: Notifications.Notification) => {
+        setNotification(notification);
+      });
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener((response: Notifications.NotificationResponse) => {
-      console.log(response);
-    });
+      responseListener.current = Notifications.addNotificationResponseReceivedListener((response: Notifications.NotificationResponse) => {
+        console.log(response);
+      });
+    }
+  }
 
-    return () => {
+  const deinitializeNotifications = () => {
+    if (Platform.OS === "ios" || Platform.OS === "android") {
       Notifications.removeNotificationSubscription(notificationListener);
       Notifications.removeNotificationSubscription(responseListener);
+    }
+  }
+
+  useEffect(() => {
+    initializeNotifications();
+    return () => {
+      deinitializeNotifications();
     };
   }, []);
 
@@ -63,9 +65,24 @@ const NotificationControls = ({ db }: {
         <Text>Data: {notification && notification.request && notification.request.content && JSON.stringify(notification.request.content.data)}</Text>
       </View>
       <View>
-        <TouchableOpacity onPress={async () => { await schedulePushNotification(); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={async () => { initializeNotifications(); }} style={styles.helpLink}>
+          <Text style={styles.helpText} lightColor={Colors.light.tint}>
+            Initialize notifications.
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={async () => { await schedulePushNotification(); await scheduleCalendarPushNotification(); }} style={styles.helpLink}>
           <Text style={styles.helpText} lightColor={Colors.light.tint}>
             Test notification.
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={async () => { await scheduleCalendarPushNotification(); }} style={styles.helpLink}>
+          <Text style={styles.helpText} lightColor={Colors.light.tint}>
+            Test scheduling a daily notification that occurs every day on the next minute of this hour.
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={async () => { await setAppBadge(8); }} style={styles.helpLink}>
+          <Text style={styles.helpText} lightColor={Colors.light.tint}>
+            Set this app's badge icon to 8.
           </Text>
         </TouchableOpacity>
       </View>
@@ -73,47 +90,6 @@ const NotificationControls = ({ db }: {
   );
 }
 
-async function schedulePushNotification() {
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: "You've got mail! 📬",
-      body: 'Here is the notification body',
-      data: { data: 'goes here' },
-    },
-    trigger: { seconds: 2 },
-  });
-}
-
-async function registerForPushNotificationsAsync() {
-  let token;
-  if (Constants.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    if (finalStatus !== 'granted') {
-      alert('Failed to get push token for push notification!');
-      return;
-    }
-    token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log(token);
-  } else {
-    alert('Must use physical device for Push Notifications');
-  }
-
-  if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF231F7C',
-    });
-  }
-
-  return token;
-}
 
 const styles = StyleSheet.create({
   container: {

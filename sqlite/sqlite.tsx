@@ -33,7 +33,7 @@ const dropTasksDBQuery = 'drop table if exists tasks;'
 const initializeTasksDBQuery = 'create table if not exists tasks (id string primary key not null, name string, about text, link text, sortOrder int);'
 const initializeHistoryDBQuery = 'create table if not exists history (id string not null, completed int, date int);'
 
-export const initializeDB = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, txEndCallback?: any): void => {
+export const initializeDB = (db: SQLite.WebSQLDatabase, tasks: Task[], resultsCallback: (results: Task[]) => void, txEndCallback?: any): void => {
     if (!db) return;
     db.transaction(
         tx => {
@@ -44,7 +44,7 @@ export const initializeDB = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks:
                     console.log('created table tasks');
                     tx.executeSql(initializeHistoryDBQuery, [], (tx: SQLTransaction, resultSet: SQLResultSet): void => {
                         console.log('created table history');
-                        initializeTasksTx(tx, defaultTasks, tasks, setTasks);
+                        initializeTasksTx(tx, defaultTasks, tasks, resultsCallback);
                     }, sqlErrCB);
                 }, sqlErrCB);
             }, sqlErrCB);
@@ -54,7 +54,7 @@ export const initializeDB = (db: SQLite.WebSQLDatabase, tasks: Task[], setTasks:
     );
 }
 
-export const initializeTasksTx = (tx: SQLite.SQLTransaction, defaultTasks: Task[], tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>): void => {
+export const initializeTasksTx = (tx: SQLite.SQLTransaction, defaultTasks: Task[], tasks: Task[], resultsCallback: (results: Task[]) => void): void => {
     if (!tx) return;
     let completedTransactions = 0; // allows us to only proceed once the transaction is completely finished
     defaultTasks.forEach((task: Task) => {
@@ -66,7 +66,7 @@ export const initializeTasksTx = (tx: SQLite.SQLTransaction, defaultTasks: Task[
                 completedTransactions += 1;
                 console.log(`initializeTasks: inserted ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
                 if (completedTransactions === defaultTasks.length) {
-                    initializeDayTaskHistoryTx(tx, defaultTasks, tasks, setTasks);
+                    initializeDayTaskHistoryTx(tx, defaultTasks, tasks, resultsCallback);
                 }
             },
             (tx: SQLTransaction, error: SQLError): boolean => {
@@ -76,7 +76,7 @@ export const initializeTasksTx = (tx: SQLite.SQLTransaction, defaultTasks: Task[
                 completedTransactions += 1;
                 // this case is special, because we are expecting unique key errors
                 if (completedTransactions === defaultTasks.length) {
-                    initializeDayTaskHistoryTx(tx, defaultTasks, tasks, setTasks);
+                    initializeDayTaskHistoryTx(tx, defaultTasks, tasks, resultsCallback);
                 }
                 return false;
             }
@@ -91,13 +91,13 @@ export const getDateInt = (): number => {
     return (new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() - tzDiff) / 1000;
 }
 
-export const initializeDayTaskHistoryFromDB = (db: SQLite.WebSQLDatabase, defaultTasks: Task[], tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, forDate?: number, txEndCallback?: any): void => {
+export const initializeDayTaskHistoryFromDB = (db: SQLite.WebSQLDatabase, defaultTasks: Task[], tasks: Task[], resultsCallback: (results: Task[]) => void, forDate?: number, txEndCallback?: any): void => {
     if (!db) return;
     const dateInt = forDate ? forDate : getDateInt();
     db.transaction(
         tx => {
             console.log(`initializeDayTaskHistoryFromDB: populating task history for day ${dateInt}`);
-            initializeDayTaskHistoryTx(tx, defaultTasks, tasks, setTasks, dateInt);
+            initializeDayTaskHistoryTx(tx, defaultTasks, tasks, resultsCallback, dateInt);
         },
         (error: SQLite.SQLError): void => { console.log(`initializeDayTaskHistoryFromDB: err callback: ${error.code} ${error.message}`); },
         (): void => { console.log(`initializeDayTaskHistoryFromDB: void callback`); if (txEndCallback) txEndCallback(); }
@@ -105,7 +105,7 @@ export const initializeDayTaskHistoryFromDB = (db: SQLite.WebSQLDatabase, defaul
 }
 
 const todayTaskHistorySelectQuery = 'select * from history where id = ? and date = ?';
-export const initializeDayTaskHistoryTx = (tx: SQLite.SQLTransaction, defaultTasks: Task[], tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, forDate?: number): void => {
+export const initializeDayTaskHistoryTx = (tx: SQLite.SQLTransaction, defaultTasks: Task[], tasks: Task[], resultsCallback: (results: Task[]) => void, forDate?: number): void => {
     if (!tx) return;
     const dateInt = forDate ? forDate : getDateInt();
     let completedTransactions = 0; // allows us to only proceed once the transaction is completely finished
@@ -139,7 +139,7 @@ export const initializeDayTaskHistoryTx = (tx: SQLite.SQLTransaction, defaultTas
                             completedTransactions += 1;
                             if (completedTransactions === defaultTasks.length) {
                                 console.log(`initializeTodayTaskHistory: finished inserting ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
-                                getTaskHistoryTx(tx, setTasks, forDate);
+                                getTaskHistoryTx(tx, resultsCallback, forDate);
                                 return;
                             }
                             console.log(`initializeTodayTaskHistory: inserted ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
@@ -222,16 +222,16 @@ export const resetDB = (db: SQLite.WebSQLDatabase, txEndCallback?: any) => {
     }
 }
 
-export const getTaskHistoryFromDB = (db: SQLite.WebSQLDatabase, setTasks: React.Dispatch<React.SetStateAction<Task[]>>, forDateInt?: number, txEndCallback?: any) => {
+export const getTaskHistoryFromDB = (db: SQLite.WebSQLDatabase, resultsCallback: (results: Task[]) => void, forDateInt?: number, txEndCallback?: any) => {
     if (!db) return;
-    db.transaction(tx => getTaskHistoryTx(tx, setTasks, forDateInt),
+    db.transaction(tx => getTaskHistoryTx(tx, resultsCallback, forDateInt),
         (error: SQLite.SQLError): void => { console.log(`getTaskHistoryFromDB: err callback: ${error.code} ${error.message}`); },
         (): void => { console.log(`getTaskHistoryFromDB: void callback`); if (txEndCallback) txEndCallback(); }
     );
 }
 
 const getTaskHistorySQL: string = `SELECT t.id, h.completed, t.name, t.about, t.link, t.sortOrder, h.date FROM tasks AS t LEFT JOIN history AS h on h.id = t.id WHERE h.date = ? ORDER BY t.sortOrder ASC`;
-export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Dispatch<React.SetStateAction<Task[]>>, forDateInt?: number) => {
+export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, resultsCallback: (results: Task[]) => void, forDateInt?: number) => {
     if (!tx) return;
     const dateInt = forDateInt ? forDateInt : getDateInt();
     console.log(`getTaskHistoryTx: executing select sql for date ${dateInt}`);
@@ -241,7 +241,7 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Disp
             const tasksFromTx = resultSet.rows['_array'];
             console.log(`getTaskHistoryTx returned ${tasksFromTx.length} results`);
             if (resultSet && resultSet.rows['_array'] && Array.isArray(resultSet.rows['_array'])) {
-                setTasks(tasksFromTx.map((task: any, i: number) => {
+                resultsCallback(tasksFromTx.map((task: any, i: number) => {
                     return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, link: task.link, order: task.sortOrder, date: task.date };
                 }));
             }
@@ -249,7 +249,7 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, setTasks: React.Disp
             const tasksFromTx = Object.values(resultSet.rows);
             console.log(`getTaskHistoryTx returned ${tasksFromTx.length} results`);
             // marshal into a task array
-            setTasks(tasksFromTx.map((task: any, i: number) => {
+            resultsCallback(tasksFromTx.map((task: any, i: number) => {
                 return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, link: task.link, order: task.sortOrder, date: task.date };
             }));
         }

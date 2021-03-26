@@ -74,7 +74,7 @@ const DataControls = ({ db, tasks, setTasks }: {
         </TouchableOpacity>
       </View>
       <View>
-        <TouchableOpacity onPress={() => { createTwoButtonAlert(initializeAlertTitle, initializeAlertMessage, initializeAlertAction, () => { initializeDB(db, tasks, setTasks, createOneButtonAlert('Initialize Data', 'Done!', 'OK')); }); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={() => { createTwoButtonAlert(initializeAlertTitle, initializeAlertMessage, initializeAlertAction, () => { initializeDB(db, tasks, (results: Task[]) => { setTasks(results); }, createOneButtonAlert('Initialize Data', 'Done!', 'OK')); }); }} style={styles.helpLink}>
           <Text style={styles.helpText} lightColor={Colors.light.tint}>
             Initialize all data.
           </Text>

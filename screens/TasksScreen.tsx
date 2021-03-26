@@ -10,6 +10,7 @@ import { getDateInt, getDB, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB
 import { getDateFromInt, getHumanDate, getOffsetDaysFromInt, getSimpleDate, wait } from '../helpers/helpers';
 import useColorScheme from '../hooks/useColorScheme';
 import Colors from '../constants/Colors';
+import { setAppBadge, setAppBadgeForTodayTasks } from '../helpers/notifications';
 
 export default function TasksScreen(): JSX.Element {
   const colorScheme = useColorScheme();
@@ -19,24 +20,50 @@ export default function TasksScreen(): JSX.Element {
   const [viewTime, setViewTime] = useState(getDateInt());
 
   const onRefresh = React.useCallback(() => {
+    refreshForTime(viewTime);
+  }, [viewTime]);
+
+  const refreshForTime = (newViewTime: number) => {
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
-    getTaskHistoryFromDB(db, setTasks, viewTime, () => { setRefreshing(false); });
-  }, []);
+    console.log(`onRefresh: refreshing for ${viewTime} (${getHumanDate(viewTime)})`);
+    getTaskHistoryFromDB(
+      db,
+      (results: Task[]) => {
+        setTasks(results);
+        setAppBadgeForTodayTasks(results, viewTime);
+      },
+      viewTime, () => {
+        setRefreshing(false);
+      });
+  }
 
   // https://css-tricks.com/run-useeffect-only-once/
   React.useEffect(() => {
-    initializeDB(db, tasks, setTasks, () => { getTaskHistoryFromDB(db, setTasks); });
+    initializeDB(db, tasks, () => {
+      getTaskHistoryFromDB(db, (results: Task[]) => {
+        setTasks(results);
+        setAppBadgeForTodayTasks(results, getDateInt());
+      });
+    });
     return () => { }
   }, []);
 
   React.useEffect(() => {
     console.log('viewTime changed');
     setRefreshing(true);
-    getTaskHistoryFromDB(db, setTasks, viewTime, () => {
-      setRefreshing(false);
-    });
-    // initializeDayTaskHistoryFromDB(db, defaultTasks, tasks, setTasks, viewTime, () => {
+    getTaskHistoryFromDB(
+      db,
+      (results: Task[]) => {
+        setTasks(results);
+        setAppBadgeForTodayTasks(results, viewTime);
+      },
+      viewTime,
+      () => {
+        setRefreshing(false);
+      }
+    );
+    // initializeDayTaskHistoryFromDB(db, defaultTasks, tasks, (results: Task[]) => { setTasks(results); }, viewTime, () => {
     //   console.log(`viewTime initialized tasks for day ${viewTime}`);
     // });
     return () => { }
@@ -46,15 +73,27 @@ export default function TasksScreen(): JSX.Element {
     <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
       <View style={styles.container}>
         <View style={styles.titleContainer}>
-          <TouchableOpacity onPress={() => { setViewTime(getOffsetDaysFromInt(viewTime, 0)); }} >
+          <TouchableOpacity onPress={() => {
+            const newViewTime = getOffsetDaysFromInt(viewTime, 0);
+            setViewTime(newViewTime);
+            // refreshForTime(newViewTime);
+          }} >
             <Text style={styles.iconArrowDate}>
               <Ionicons style={[]} name="arrow-back-circle" size={36} color={Colors[colorScheme].text} />
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => { setViewTime(getDateInt()); }} >
+          <TouchableOpacity onPress={() => {
+            const newViewTime = getDateInt();
+            setViewTime(newViewTime);
+            // refreshForTime(newViewTime);
+          }} >
             <Text style={styles.title}>{viewTime === getDateInt() ? 'Today' : getSimpleDate(viewTime)}</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => { setViewTime(getOffsetDaysFromInt(viewTime, 2)); }} >
+          <TouchableOpacity onPress={() => {
+            const newViewTime = getOffsetDaysFromInt(viewTime, 2);
+            setViewTime(newViewTime);
+            // refreshForTime(newViewTime);
+          }} >
             <Text style={styles.iconArrowDate}>
               <Ionicons style={[]} name="arrow-forward-circle" size={36} color={Colors[colorScheme].text} />
             </Text>
