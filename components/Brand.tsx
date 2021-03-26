@@ -2,16 +2,9 @@ import React from 'react';
 import { StyleSheet, TouchableOpacity, Image, Platform, Alert } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
-// import { Ionicons } from '@expo/vector-icons';
-// import { Entypo } from '@expo/vector-icons';
-import { Task } from '../models/Task';
-import * as SQLite from 'expo-sqlite';
-import { initializeDB, resetDB } from '../sqlite/sqlite';
-import useColorScheme from '../hooks/useColorScheme';
 import * as WebBrowser from 'expo-web-browser';
 
 const BrandView = (): JSX.Element => {
-  const colorScheme = useColorScheme();
   const brandUrl = 'https://charlesmknox.com';
 
   const openURL = (link: string): void => {
