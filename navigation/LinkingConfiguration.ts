@@ -8,7 +8,7 @@ export default {
         screens: {
           TabOne: {
             screens: {
-              TasksScreen: 'one',
+              Tasks: 'one',
             },
           },
           TabTwo: {

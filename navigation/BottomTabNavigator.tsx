@@ -16,10 +16,10 @@ export default function BottomTabNavigator() {
 
   return (
     <BottomTab.Navigator
-      initialRouteName="TasksScreen"
+      initialRouteName="Tasks"
       tabBarOptions={{ activeTintColor: Colors[colorScheme].tint }}>
       <BottomTab.Screen
-        name="TasksScreen"
+        name="Tasks"
         component={TasksScreenNavigator}
         options={{
           tabBarIcon: ({ color }) => <TabBarIcon name="md-checkmark-circle" color={color} />,
@@ -50,7 +50,7 @@ const TasksScreenNavigator = (): JSX.Element => {
   return (
     <TasksScreenStack.Navigator>
       <TasksScreenStack.Screen
-        name="TasksScreen"
+        name="Tasks"
         component={TasksScreen}
         options={{ headerTitle: 'Tasks' }}
       />
