@@ -7,10 +7,10 @@ import { Text, View, ScrollView } from '../components/Themed';
 import { Task, defaultTasks } from '../models/Task';
 import * as SQLite from 'expo-sqlite';
 import { getDateInt, getDB, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB, initializeDB } from '../sqlite/sqlite';
-import { getDateFromInt, getHumanDate, getOffsetDaysFromInt, getSimpleDate, wait } from '../helpers/helpers';
+import { getHumanDate, getOffsetDaysFromInt, getSimpleDate, wait } from '../helpers/helpers';
 import useColorScheme from '../hooks/useColorScheme';
 import Colors from '../constants/Colors';
-import { setAppBadge, setAppBadgeForTodayTasks } from '../helpers/notifications';
+import { setAppBadgeForTodayTasks } from '../helpers/notifications';
 
 export default function TasksScreen(): JSX.Element {
   const colorScheme = useColorScheme();
@@ -76,7 +76,6 @@ export default function TasksScreen(): JSX.Element {
           <TouchableOpacity onPress={() => {
             const newViewTime = getOffsetDaysFromInt(viewTime, 0);
             setViewTime(newViewTime);
-            // refreshForTime(newViewTime);
           }} >
             <Text style={styles.iconArrowDate}>
               <Ionicons style={[]} name="arrow-back-circle" size={36} color={Colors[colorScheme].text} />
@@ -85,14 +84,12 @@ export default function TasksScreen(): JSX.Element {
           <TouchableOpacity onPress={() => {
             const newViewTime = getDateInt();
             setViewTime(newViewTime);
-            // refreshForTime(newViewTime);
           }} >
             <Text style={styles.title}>{viewTime === getDateInt() ? 'Today' : getSimpleDate(viewTime)}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => {
             const newViewTime = getOffsetDaysFromInt(viewTime, 2);
             setViewTime(newViewTime);
-            // refreshForTime(newViewTime);
           }} >
             <Text style={styles.iconArrowDate}>
               <Ionicons style={[]} name="arrow-forward-circle" size={36} color={Colors[colorScheme].text} />

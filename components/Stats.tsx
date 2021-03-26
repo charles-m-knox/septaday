@@ -1,17 +1,10 @@
-import React, { useState } from 'react';
-import Constants from 'expo-constants';
-import { StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import Colors from '../constants/Colors';
+import React from 'react';
+import { StyleSheet } from 'react-native';
 import { Text, View } from './Themed';
-// import { Ionicons } from '@expo/vector-icons';
-// import { Entypo } from '@expo/vector-icons';
-import { Task } from '../models/Task';
 import * as SQLite from 'expo-sqlite';
-import { getQueriesFromDB, getTaskStatsSQL, getTaskDaysSQL } from '../sqlite/sqlite';
 import { getHumanDate } from '../helpers/helpers';
 
-const Stats = ({ db, dates, completions }: {
-  db: SQLite.WebSQLDatabase,
+const Stats = ({ dates, completions }: {
   dates: number[],
   completions: number[],
 }): JSX.Element => {
@@ -29,10 +22,6 @@ const Stats = ({ db, dates, completions }: {
     const completionsPercentage = ((completionsSum / completions.length) * 100).toFixed(2);
     return `${completionsSum}/${completions.length} (${completionsPercentage}%)`;
   }
-
-  React.useEffect(() => {
-    return () => { }
-  }, [])
 
   return (
     <View style={styles.container}>

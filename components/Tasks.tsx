@@ -6,7 +6,7 @@ import { Text, View } from './Themed';
 import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import * as SQLite from 'expo-sqlite';
-import { dropTaskHistoryForDaySQL, getDateInt, getQueriesWithArgsFromDB, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB, initializeDB, pushTasksToDB, pushTaskToDB, resetDB } from '../sqlite/sqlite';
+import { dropTaskHistoryForDaySQL, getDateInt, getQueriesWithArgsFromDB, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB, pushTasksToDB, pushTaskToDB } from '../sqlite/sqlite';
 import useColorScheme from '../hooks/useColorScheme';
 import { getSimpleDate } from '../helpers/helpers';
 import { setAppBadgeForTodayTasks } from '../helpers/notifications';

@@ -58,7 +58,7 @@ const NotificationControls = ({ db }: {
           Manage push notifications here.
         </Text>
       </View>
-      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      {/* <View style={{ alignItems: 'center', justifyContent: 'center' }}>
         <Text>Your expo push token: {expoPushToken}</Text>
         <Text>Title: {notification && notification.request && notification.request.content && notification.request.content.title} </Text>
         <Text>Body: {notification && notification.request && notification.request.content && notification.request.content.body}</Text>
@@ -85,7 +85,7 @@ const NotificationControls = ({ db }: {
             Set this app's badge icon to 8.
           </Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </View >
   );
 }

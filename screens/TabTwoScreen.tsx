@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { StyleSheet, TouchableOpacity, RefreshControl, Platform } from 'react-native';
+import { StyleSheet, RefreshControl, Platform } from 'react-native';
 import AboutSection from '../components/About';
 import DataControls from '../components/DataControls';
 import { Text, View, ScrollView } from '../components/Themed';
-import Colors from '../constants/Colors';
 import * as SQLite from 'expo-sqlite';
 import { getDB, getTaskHistoryFromDB, getQueriesFromDB, getTaskStatsSQL, getTaskDaysSQL } from '../sqlite/sqlite';
 import { Task, defaultTasks } from '../models/Task';
@@ -13,9 +12,11 @@ import BrandView from '../components/Brand';
 import Stats from '../components/Stats';
 import { useFocusEffect } from '@react-navigation/native';
 import NotificationControls from '../components/NotificationControls';
+import Colors from '../constants/Colors';
+import useColorScheme from '../hooks/useColorScheme';
 
 export default function TabTwoScreen() {
-
+  const colorScheme = useColorScheme();
   let db: SQLite.WebSQLDatabase = getDB();
   const [tasks, setTasks] = useState(defaultTasks);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -80,11 +81,7 @@ export default function TabTwoScreen() {
           setRefreshing(false);
         });
       });
-      return () => {
-        // alert('Screen was unfocused');
-        // Do something when the screen is unfocused
-        // Useful for cleanup functions
-      };
+      return () => { };
     }, [])
   );
 
@@ -98,7 +95,7 @@ export default function TabTwoScreen() {
       <View style={styles.container}>
         <Text style={styles.title}>Stats</Text>
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <Stats db={db} dates={dates} completions={completions} />
+        <Stats dates={dates} completions={completions} />
       </View>
       <View style={styles.container}>
         <Text style={styles.title}>App</Text>
