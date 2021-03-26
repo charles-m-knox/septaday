@@ -1,18 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
-// import { Ionicons } from '@expo/vector-icons';
-// import { Entypo } from '@expo/vector-icons';
-import { Task } from '../models/Task';
-import * as SQLite from 'expo-sqlite';
-import { initializeDB, resetDB } from '../sqlite/sqlite';
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync, scheduleCalendarPushNotification, schedulePushNotification, setAppBadge } from '../helpers/notifications';
 
-const NotificationControls = ({ db }: {
-  db: SQLite.WebSQLDatabase,
-}): JSX.Element => {
+const NotificationControls = (): JSX.Element => {
 
   const [expoPushToken, setExpoPushToken] = useState('');
   const initialNotification: any = {}; // should technically be of type Notifications.Notification

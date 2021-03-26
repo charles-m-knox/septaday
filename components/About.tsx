@@ -2,14 +2,10 @@ import React from 'react';
 import { StyleSheet, TouchableOpacity, Animated, Alert, Platform } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
-import { Ionicons } from '@expo/vector-icons';
-import { Entypo } from '@expo/vector-icons';
 import { Task } from '../models/Task';
-import * as SQLite from 'expo-sqlite';
 import * as WebBrowser from 'expo-web-browser';
 
-const AboutSection = ({ db, tasks, setTasks }: {
-  db: SQLite.WebSQLDatabase,
+const AboutSection = ({ tasks, setTasks }: {
   tasks: Task[],
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>
 }): JSX.Element => {

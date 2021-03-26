@@ -5,8 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Tasks from '../components/Tasks';
 import { Text, View, ScrollView } from '../components/Themed';
 import { Task, defaultTasks } from '../models/Task';
-import * as SQLite from 'expo-sqlite';
-import { getDateInt, getDB, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB, initializeDB } from '../sqlite/sqlite';
+import { getDateInt, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB, initializeDB } from '../sqlite/sqlite';
 import { getHumanDate, getOffsetDaysFromInt, getSimpleDate, wait } from '../helpers/helpers';
 import useColorScheme from '../hooks/useColorScheme';
 import Colors from '../constants/Colors';
@@ -14,7 +13,6 @@ import { setAppBadgeForTodayTasks } from '../helpers/notifications';
 
 export default function TasksScreen(): JSX.Element {
   const colorScheme = useColorScheme();
-  let db: SQLite.WebSQLDatabase = getDB();
   const [refreshing, setRefreshing] = React.useState(false);
   const [tasks, setTasks] = useState(defaultTasks);
   const [viewTime, setViewTime] = useState(getDateInt());
@@ -28,7 +26,6 @@ export default function TasksScreen(): JSX.Element {
     wait(4000).then(() => setRefreshing(false));
     console.log(`onRefresh: refreshing for ${viewTime} (${getHumanDate(viewTime)})`);
     getTaskHistoryFromDB(
-      db,
       (results: Task[]) => {
         setTasks(results);
         setAppBadgeForTodayTasks(results, viewTime);
@@ -40,12 +37,13 @@ export default function TasksScreen(): JSX.Element {
 
   // https://css-tricks.com/run-useeffect-only-once/
   React.useEffect(() => {
-    initializeDB(db, tasks, () => {
-      getTaskHistoryFromDB(db, (results: Task[]) => {
-        setTasks(results);
-        setAppBadgeForTodayTasks(results, getDateInt());
+    initializeDB(tasks, (initResults: Task[]) => { },
+      () => {
+        getTaskHistoryFromDB((results: Task[]) => {
+          setTasks(results);
+          setAppBadgeForTodayTasks(results, getDateInt());
+        });
       });
-    });
     return () => { }
   }, []);
 
@@ -53,7 +51,6 @@ export default function TasksScreen(): JSX.Element {
     console.log('viewTime changed');
     setRefreshing(true);
     getTaskHistoryFromDB(
-      db,
       (results: Task[]) => {
         setTasks(results);
         setAppBadgeForTodayTasks(results, viewTime);
@@ -97,7 +94,7 @@ export default function TasksScreen(): JSX.Element {
           </TouchableOpacity>
         </View >
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <Tasks tasks={tasks} setTasks={setTasks} db={db} viewTime={viewTime} />
+        <Tasks tasks={tasks} setTasks={setTasks} viewTime={viewTime} />
       </View >
     </ScrollView>
   );

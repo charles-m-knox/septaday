@@ -17,7 +17,6 @@ import useColorScheme from '../hooks/useColorScheme';
 
 export default function AboutScreen() {
   const colorScheme = useColorScheme();
-  let db: SQLite.WebSQLDatabase = getDB();
   const [tasks, setTasks] = useState(defaultTasks);
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -31,7 +30,7 @@ export default function AboutScreen() {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
-    getTaskHistoryFromDB(db, (results: Task[]) => { setTasks(results); }, 0, () => {
+    getTaskHistoryFromDB((results: Task[]) => { setTasks(results); }, 0, () => {
       getStats(() => {
         setRefreshing(false);
       });
@@ -40,13 +39,12 @@ export default function AboutScreen() {
 
   // https://css-tricks.com/run-useeffect-only-once/
   React.useEffect(() => {
-    getTaskHistoryFromDB(db, (results: Task[]) => { setTasks(results); }, 0, () => { getStats() });
+    getTaskHistoryFromDB((results: Task[]) => { setTasks(results); }, 0, () => { getStats() });
     return () => { }
   }, [])
 
   const getStats = (callback?: any) => {
     getQueriesFromDB(
-      db,
       [
         getTaskStatsSQL,
         getTaskDaysSQL,
@@ -76,7 +74,7 @@ export default function AboutScreen() {
   useFocusEffect(
     React.useCallback(() => {
       // Do something when the tab is opened
-      getTaskHistoryFromDB(db, (results: Task[]) => { setTasks(results); }, 0, () => {
+      getTaskHistoryFromDB((results: Task[]) => { setTasks(results); }, 0, () => {
         getStats(() => {
           setRefreshing(false);
         });
@@ -90,7 +88,7 @@ export default function AboutScreen() {
       <View style={styles.container}>
         <Text style={styles.title}>About</Text>
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <AboutSection db={db} tasks={tasks} setTasks={setTasks} />
+        <AboutSection tasks={tasks} setTasks={setTasks} />
       </View>
       <View style={styles.container}>
         <Text style={styles.title}>Stats</Text>
@@ -108,7 +106,7 @@ export default function AboutScreen() {
             <View style={styles.container}>
               <Text style={styles.title}>Push Notifications</Text>
               <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-              <NotificationControls db={db} />
+              <NotificationControls />
             </View>
           </React.Fragment>
         )
@@ -116,7 +114,7 @@ export default function AboutScreen() {
       <View style={styles.container}>
         <Text style={styles.title}>Data</Text>
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <DataControls db={db} tasks={tasks} setTasks={setTasks} />
+        <DataControls tasks={tasks} setTasks={setTasks} />
       </View>
     </ScrollView>
   );

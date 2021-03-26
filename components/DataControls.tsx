@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
-import Constants from 'expo-constants';
+import React from 'react';
 import { StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
-// import { Ionicons } from '@expo/vector-icons';
-// import { Entypo } from '@expo/vector-icons';
 import { Task } from '../models/Task';
-import * as SQLite from 'expo-sqlite';
 import { initializeDB, resetDB } from '../sqlite/sqlite';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
+import { dbname } from '../constants/general';
+import * as DocumentPicker from 'expo-document-picker';
 
-const DataControls = ({ db, tasks, setTasks }: {
-  db: SQLite.WebSQLDatabase,
+const DataControls = ({ tasks, setTasks }: {
   tasks: Task[],
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>
 }): JSX.Element => {
@@ -56,6 +55,77 @@ const DataControls = ({ db, tasks, setTasks }: {
     }
   }
 
+  const getDBFilePath = (): string => {
+    const dd = FileSystem.documentDirectory ? FileSystem.documentDirectory : '';
+    if (!dd) return '';
+    return `${dd}/SQLite/${dbname}`;
+  }
+
+  const importDB = () => {
+    const dbFilePath = getDBFilePath();
+    if (!dbFilePath) return;
+    createTwoButtonAlert(
+      'Import Process',
+      'In the next screen, you will be asked to pick a document from the native document picker. Please pick a valid sqlite file. After selecting the file, the import will occur, you will lose all current data, and you will have to restart this app. Proceed?',
+      'Proceed',
+      () => {
+        DocumentPicker.getDocumentAsync(
+          {
+            type: '*/*',
+            copyToCacheDirectory: true,
+            multiple: false,
+          }
+        ).then((result: DocumentPicker.DocumentResult) => {
+          console.log(`importDB: document picker: ${JSON.stringify(result)}`);
+          if (result.type !== "success") return;
+          // copy the file over the current db?
+          FileSystem.copyAsync({
+            from: result.uri,
+            to: dbFilePath,
+          }).then(() => {
+            console.log(`importDB: finished!`);
+            createOneButtonAlert(
+              'Restart',
+              'The import has completed. You must restart the app manually now. The next time you start the app, it will contain your new data.',
+              'OK',
+              () => {
+                console.log('importDB: user confirmed they need to restart');
+              }
+            )
+          })
+        });
+      }
+    )
+  }
+
+  const exportDB = () => {
+    const dd = FileSystem.documentDirectory ? FileSystem.documentDirectory : '';
+    // console.log(`exportDB: dd ${dd}`);
+    // if (!dd) return;
+    // FileSystem.readDirectoryAsync(dd).then((files: string[]) => {
+    //   files.forEach((file: string) => {
+    //     console.log(`files: ${file}`)
+    //   })
+    // });
+    // return;
+    Sharing.isAvailableAsync().then((isAvailable: boolean) => {
+      console.log(`exportDB: sharing available: ${isAvailable}`);
+      if (isAvailable) {
+        console.log(`fs document directory: ${FileSystem.documentDirectory}`);
+        Sharing.shareAsync(
+          getDBFilePath(),
+          {
+            mimeType: 'application/x-sqlite3', // http://fileformats.archiveteam.org/wiki/DB_(SQLite)
+            UTI: 'public.database', // https://developer.apple.com/library/archive/documentation/Miscellaneous/Reference/UTIRef/Articles/System-DeclaredUniformTypeIdentifiers.html#//apple_ref/doc/uid/TP40009259-SW1
+            dialogTitle: `Export ${dbname}`
+          }
+        ).then((value: any) => {
+          console.log(`exportDB: shared promise resolved: ${JSON.stringify(value)}`);
+        });
+      }
+    })
+  }
+
   return (
     <View style={styles.container}>
       <View>
@@ -67,14 +137,28 @@ const DataControls = ({ db, tasks, setTasks }: {
         </Text>
       </View>
       <View>
-        <TouchableOpacity onPress={() => { createTwoButtonAlert(destroyAlertTitle, destroyAlertMessage, destroyAlertAction, () => { resetDB(db, createOneButtonAlert('Destroy Data', 'Done!', 'OK')); }); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={() => { exportDB(); }} style={styles.helpLink}>
+          <Text style={styles.helpText} lightColor={Colors.light.tint}>
+            Export all data.
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View>
+        <TouchableOpacity onPress={() => { importDB(); }} style={styles.helpLink}>
+          <Text style={styles.helpText} lightColor={Colors.light.tint}>
+            Import all data.
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View>
+        <TouchableOpacity onPress={() => { createTwoButtonAlert(destroyAlertTitle, destroyAlertMessage, destroyAlertAction, () => { resetDB(createOneButtonAlert('Destroy Data', 'Done!', 'OK')); }); }} style={styles.helpLink}>
           <Text style={styles.helpText} lightColor={Colors.light.tint}>
             Destroy all data.
           </Text>
         </TouchableOpacity>
       </View>
       <View>
-        <TouchableOpacity onPress={() => { createTwoButtonAlert(initializeAlertTitle, initializeAlertMessage, initializeAlertAction, () => { initializeDB(db, tasks, (results: Task[]) => { setTasks(results); }, createOneButtonAlert('Initialize Data', 'Done!', 'OK')); }); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={() => { createTwoButtonAlert(initializeAlertTitle, initializeAlertMessage, initializeAlertAction, () => { initializeDB(tasks, (results: Task[]) => { setTasks(results); }, createOneButtonAlert('Initialize Data', 'Done!', 'OK')); }); }} style={styles.helpLink}>
           <Text style={styles.helpText} lightColor={Colors.light.tint}>
             Initialize all data.
           </Text>

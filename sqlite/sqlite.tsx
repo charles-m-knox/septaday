@@ -33,7 +33,8 @@ const dropTasksDBQuery = 'drop table if exists tasks;'
 const initializeTasksDBQuery = 'create table if not exists tasks (id string primary key not null, name string, about text, link text, sortOrder int);'
 const initializeHistoryDBQuery = 'create table if not exists history (id string not null, completed int, date int);'
 
-export const initializeDB = (db: SQLite.WebSQLDatabase, tasks: Task[], resultsCallback: (results: Task[]) => void, txEndCallback?: any): void => {
+export const initializeDB = (tasks: Task[], resultsCallback: (results: Task[]) => void, txEndCallback?: any): void => {
+    const db = getDB();
     if (!db) return;
     db.transaction(
         tx => {
@@ -91,7 +92,8 @@ export const getDateInt = (): number => {
     return (new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() - tzDiff) / 1000;
 }
 
-export const initializeDayTaskHistoryFromDB = (db: SQLite.WebSQLDatabase, defaultTasks: Task[], tasks: Task[], resultsCallback: (results: Task[]) => void, forDate?: number, txEndCallback?: any): void => {
+export const initializeDayTaskHistoryFromDB = (defaultTasks: Task[], tasks: Task[], resultsCallback: (results: Task[]) => void, forDate?: number, txEndCallback?: any): void => {
+    const db = getDB();
     if (!db) return;
     const dateInt = forDate ? forDate : getDateInt();
     db.transaction(
@@ -160,7 +162,8 @@ export const initializeDayTaskHistoryTx = (tx: SQLite.SQLTransaction, defaultTas
 
 const deleteTaskQuery = 'DELETE FROM history WHERE id = ? AND date = ?';
 const insertTaskQuery = 'insert into history (id, completed, date) values (?, ?, ?)';
-export const pushTaskToDB = (db: SQLite.WebSQLDatabase, task: Task, callback: any, forDate?: number, txEndCallback?: any): void => {
+export const pushTaskToDB = (task: Task, callback: any, forDate?: number, txEndCallback?: any): void => {
+    const db = getDB();
     if (!db) return;
     const dateInt = forDate ? forDate : getDateInt();
     console.log(`pushTaskToDB pushing ${task.id} to db`);
@@ -181,7 +184,8 @@ export const pushTaskToDB = (db: SQLite.WebSQLDatabase, task: Task, callback: an
     );
 }
 
-export const pushTasksToDB = (db: SQLite.WebSQLDatabase, tasks: Task[], callback: any, forDate?: number, txEndCallback?: any): void => {
+export const pushTasksToDB = (tasks: Task[], callback: any, forDate?: number, txEndCallback?: any): void => {
+    const db = getDB();
     if (!db) return;
     const dateInt = forDate ? forDate : getDateInt();
     let completedTransactions = 0;
@@ -208,7 +212,8 @@ export const pushTasksToDB = (db: SQLite.WebSQLDatabase, tasks: Task[], callback
     );
 }
 
-export const resetDB = (db: SQLite.WebSQLDatabase, txEndCallback?: any) => {
+export const resetDB = (txEndCallback?: any) => {
+    const db = getDB();
     if (db) {
         console.log(`resetDB: starting`);
         db.transaction(
@@ -222,7 +227,8 @@ export const resetDB = (db: SQLite.WebSQLDatabase, txEndCallback?: any) => {
     }
 }
 
-export const getTaskHistoryFromDB = (db: SQLite.WebSQLDatabase, resultsCallback: (results: Task[]) => void, forDateInt?: number, txEndCallback?: any) => {
+export const getTaskHistoryFromDB = (resultsCallback: (results: Task[]) => void, forDateInt?: number, txEndCallback?: any) => {
+    const db = getDB();
     if (!db) return;
     db.transaction(tx => getTaskHistoryTx(tx, resultsCallback, forDateInt),
         (error: SQLite.SQLError): void => { console.log(`getTaskHistoryFromDB: err callback: ${error.code} ${error.message}`); },
@@ -260,7 +266,8 @@ export const getTaskStatsSQL: string = `SELECT completed FROM history`;
 export const getTaskDaysSQL: string = `SELECT DISTINCT(date) as date FROM history ORDER BY date`;
 export const dropTaskHistoryForDaySQL: string = `DELETE FROM history WHERE date = ?`;
 
-export const getQueriesFromDB = (db: SQLite.WebSQLDatabase, queries: string[], callbacks: any[], txEndCallback?: any) => {
+export const getQueriesFromDB = (queries: string[], callbacks: any[], txEndCallback?: any) => {
+    const db = getDB();
     if (!db) return;
     db.transaction(
         tx => {
@@ -292,7 +299,8 @@ export const getQueryTx = (tx: SQLite.SQLTransaction, query: string, callback: a
     }, sqlErrCB);
 }
 
-export const getQueriesWithArgsFromDB = (db: SQLite.WebSQLDatabase, queries: string[], args: any[][], callbacks: any[], txEndCallback?: any) => {
+export const getQueriesWithArgsFromDB = (queries: string[], args: any[][], callbacks: any[], txEndCallback?: any) => {
+    const db = getDB();
     if (!db) return;
     db.transaction(
         tx => {
