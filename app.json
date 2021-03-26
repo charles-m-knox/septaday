@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "septaday",
+    "name": "Septaday",
     "slug": "septaday",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,7 +20,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "usesIcloudStorage": true
+      "usesIcloudStorage": true,
+      "bundleIdentifier": "com.charlesmknox.septaday"
     },
     "android": {
       "adaptiveIcon": {
