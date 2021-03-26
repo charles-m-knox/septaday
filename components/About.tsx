@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { StyleSheet, TouchableOpacity, Animated, Alert, Platform } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import { Ionicons } from '@expo/vector-icons';
@@ -67,7 +67,23 @@ const AboutSection = ({ db, tasks, setTasks }: {
 
   const openURL = (link: string): void => {
     if (!link) return;
-    WebBrowser.openBrowserAsync(link);
+    const msg = `Would you like to open the web page ${link} in your browser? This page will provide you with more information about the topic you selected.`;
+    const callback = () => { WebBrowser.openBrowserAsync(link); }
+    if (Platform.OS === "web") {
+      if (confirm(msg)) {
+        callback();
+      }
+    } else {
+      Alert.alert(
+        "Open in browser?",
+        msg,
+        [
+          { text: "Cancel", onPress: () => { }, style: "cancel" },
+          { text: "Open", onPress: () => { callback(); }, style: "default" }
+        ],
+        { cancelable: true }
+      );
+    }
   }
 
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, Image, Platform, Alert } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 // import { Ionicons } from '@expo/vector-icons';
@@ -12,15 +12,34 @@ import * as WebBrowser from 'expo-web-browser';
 
 const BrandView = (): JSX.Element => {
   const colorScheme = useColorScheme();
+  const brandUrl = 'https://charlesmknox.com';
 
-  function handleHelpPress() {
-    WebBrowser.openBrowserAsync('https://charlesmknox.com');
+  const openURL = (link: string): void => {
+    if (!link) return;
+    const msg = `Would you like to open the web page ${link} in your browser?`;
+    const callback = () => { WebBrowser.openBrowserAsync(link); }
+    if (Platform.OS === "web") {
+      if (confirm(msg)) {
+        callback();
+      }
+    } else {
+      Alert.alert(
+        "Open in browser?",
+        msg,
+        [
+          { text: "Cancel", onPress: () => { }, style: "cancel" },
+          { text: "Open", onPress: () => { callback(); }, style: "default" }
+        ],
+        { cancelable: true }
+      );
+    }
   }
+
 
   return (
     <View style={styles.container}>
       <View style={styles.brandLogoContainer}>
-        <TouchableOpacity onPress={handleHelpPress}>
+        <TouchableOpacity onPress={() => { openURL(brandUrl); }}>
           <Image style={styles.brandLogo} source={require('../assets/images/TechLife23.png')} />
         </TouchableOpacity>
       </View>
@@ -31,7 +50,7 @@ const BrandView = (): JSX.Element => {
         </Text>
       </View>
       <View>
-        <TouchableOpacity onPress={handleHelpPress} style={styles.aboutText}>
+        <TouchableOpacity onPress={() => { openURL(brandUrl); }} style={styles.aboutText}>
           <Text lightColor={Colors.light.tint}>
             You can tap here or on the logo above to visit my website, https://charlesmknox.com.
           </Text>
