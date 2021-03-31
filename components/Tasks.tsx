@@ -8,8 +8,8 @@ import { Entypo } from '@expo/vector-icons';
 import * as SQLite from 'expo-sqlite';
 import { dropTaskHistoryForDaySQL, getDateInt, getQueriesWithArgsFromDB, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB, pushTasksToDB, pushTaskToDB } from '../sqlite/sqlite';
 import useColorScheme from '../hooks/useColorScheme';
-import { getSimpleDate } from '../helpers/helpers';
 import { setAppBadgeForTodayTasks } from '../helpers/notifications';
+import { getHumanDate } from '../helpers/helpers';
 
 const Tasks = ({ tasks, setTasks, viewTime }: {
   tasks: Task[],
@@ -135,7 +135,7 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
                 onPress={() => {
                   createTwoButtonAlert(
                     'Are you sure?',
-                    `Are you sure you want to delete the data for ${viewTime === getDateInt() ? 'Today' : getSimpleDate(viewTime)}?`,
+                    `Are you sure you want to delete the data for ${viewTime === getDateInt() ? 'Today' : getHumanDate(viewTime, false)}?`,
                     `Yes`,
                     () => {
                       getQueriesWithArgsFromDB(

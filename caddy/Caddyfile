@@ -1,0 +1,14 @@
+{
+    # email certs@domain.com
+    debug
+    # local_certs
+    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+{$BUILD_DOMAIN} {
+    tls /etc/letsencrypt/live/{$BUILD_DOMAIN}/fullchain.pem /etc/letsencrypt/live/{$BUILD_DOMAIN}/privkey.pem
+    root * /dist/
+    file_server browse {
+        root ../dist
+    }
+}

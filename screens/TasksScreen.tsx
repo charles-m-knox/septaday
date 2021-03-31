@@ -6,7 +6,7 @@ import Tasks from '../components/Tasks';
 import { Text, View, ScrollView } from '../components/Themed';
 import { Task, defaultTasks } from '../models/Task';
 import { getDateInt, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB, initializeDB } from '../sqlite/sqlite';
-import { getHumanDate, getOffsetDaysFromInt, getSimpleDate, wait } from '../helpers/helpers';
+import { getHumanDate, getOffsetDaysFromInt, wait } from '../helpers/helpers';
 import useColorScheme from '../hooks/useColorScheme';
 import Colors from '../constants/Colors';
 import { setAppBadgeForTodayTasks } from '../helpers/notifications';
@@ -71,7 +71,7 @@ export default function TasksScreen(): JSX.Element {
       <View style={styles.container}>
         <View style={styles.titleContainer}>
           <TouchableOpacity onPress={() => {
-            const newViewTime = getOffsetDaysFromInt(viewTime, 0);
+            const newViewTime = getOffsetDaysFromInt(viewTime, -1);
             setViewTime(newViewTime);
           }} >
             <Text style={styles.iconArrowDate}>
@@ -82,10 +82,10 @@ export default function TasksScreen(): JSX.Element {
             const newViewTime = getDateInt();
             setViewTime(newViewTime);
           }} >
-            <Text style={styles.title}>{viewTime === getDateInt() ? 'Today' : getSimpleDate(viewTime)}</Text>
+            <Text style={styles.title}>{viewTime === getDateInt() ? 'Today' : getHumanDate(viewTime, false)}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => {
-            const newViewTime = getOffsetDaysFromInt(viewTime, 2);
+            const newViewTime = getOffsetDaysFromInt(viewTime, 1);
             setViewTime(newViewTime);
           }} >
             <Text style={styles.iconArrowDate}>

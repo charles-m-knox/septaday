@@ -86,9 +86,9 @@ export const initializeTasksTx = (tx: SQLite.SQLTransaction, defaultTasks: Task[
 }
 
 // https://stackoverflow.com/a/61505926/3798673
-export const getDateInt = (): number => {
+export const getDateInt = () => {
     const today = new Date();
-    const tzDiff = new Date(1970, 0, 1).getTime()
+    const tzDiff = new Date(1970, 0, 1).getTime();
     return (new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() - tzDiff) / 1000;
 }
 

@@ -16,3 +16,11 @@ assets/images/check-circle-regular.svg
 assets/images/check-circle-solid.svg
 appstorenotes.txt
 appstore
+
+dist
+localassets
+
+build.sh
+coverage
+
+components
