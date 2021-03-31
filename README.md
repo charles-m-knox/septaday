@@ -31,7 +31,7 @@ In order to establish a single source of truth for the tasks completed each day,
 
 ## Building locally
 
-Building locally is required because the mp3 files in the `assets/audio` directory are 60mb each on average, and Expo's build servers will reject them because they're too big (Cloudfront rejects them as well).
+Building locally is not required, but does provide deeper insight and control over the build process, as opposed to simply using `expo build:ios` and `expo publish`.
 
 First, install Turtle:
 
