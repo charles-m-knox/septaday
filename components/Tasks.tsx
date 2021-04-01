@@ -5,11 +5,18 @@ import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
-import * as SQLite from 'expo-sqlite';
-import { dropTaskHistoryForDaySQL, getDateInt, getQueriesWithArgsFromDB, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB, pushTasksToDB, pushTaskToDB } from '../sqlite/sqlite';
+import {
+  getQueriesWithArgsFromDB,
+  getTaskHistoryFromDB,
+  initializeDayTaskHistoryFromDB,
+  pushTasksToDB,
+  pushTaskToDB
+} from '../sqlite/sqlite';
 import useColorScheme from '../hooks/useColorScheme';
 import { setAppBadgeForTodayTasks } from '../helpers/notifications';
-import { getHumanDate } from '../helpers/helpers';
+import { getDateInt, getHumanDate } from '../helpers/helpers';
+import { dropTaskHistoryForDaySQL } from '../sqlite/queries';
+import { createTwoButtonAlert } from '../helpers/alerts';
 
 const Tasks = ({ tasks, setTasks, viewTime }: {
   tasks: Task[],
@@ -30,44 +37,8 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
 
   React.useEffect(() => {
     console.log('viewTime changed');
-    // setRefreshing(true);
-    // initializeDayTaskHistoryFromDB(db, defaultTasks, tasks, (results: Task[]) => { setTasks(results); }, viewTime, () => {
-    // console.log(`viewTime initialized tasks for day ${viewTime}`);
-    // getTaskHistoryFromDB(db, (results: Task[]) => { setTasks(results); }, viewTime, () => { setRefreshing(false); });
-    // });
     return () => { }
   }, [viewTime]);
-
-
-  // React.useEffect(() => {
-  // console.log('useEffect: getting all tasks from db');
-  // getTaskHistoryFromDB(db, (retrievedTasksFromDB: Task[]) => {
-  //   if (!retrievedTasksFromDB) {
-  //     return;
-  //   }
-  //   retrievedTasksFromDB.sort((a: Task, b: Task) => a.order - b.order);
-  //   setTasks(retrievedTasksFromDB);
-  // });
-  // return () => { }
-  // });
-
-  const createTwoButtonAlert = (title: string, message: string, action: string, callback?: any): void => {
-    if (Platform.OS === "web") {
-      if (confirm(message)) {
-        callback();
-      }
-    } else {
-      Alert.alert(
-        title,
-        message,
-        [
-          { text: "Cancel", onPress: () => { }, style: "cancel" },
-          { text: action, onPress: () => { callback(); }, style: "destructive" }
-        ],
-        { cancelable: false }
-      );
-    }
-  }
 
   return (
     <View style={styles.container}>
@@ -111,7 +82,6 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
           </View>
         )
       }
-
       {
         tasks.length > 0 && (
           <React.Fragment>
@@ -137,6 +107,7 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
                     'Are you sure?',
                     `Are you sure you want to delete the data for ${viewTime === getDateInt() ? 'Today' : getHumanDate(viewTime, false)}?`,
                     `Yes`,
+                    'destructive',
                     () => {
                       getQueriesWithArgsFromDB(
                         [dropTaskHistoryForDaySQL],

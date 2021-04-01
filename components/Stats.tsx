@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Text, View } from './Themed';
-import * as SQLite from 'expo-sqlite';
 import { getHumanDate } from '../helpers/helpers';
 
 const Stats = ({ dates, completions }: {
@@ -11,7 +10,6 @@ const Stats = ({ dates, completions }: {
 
   const getCompletions = (completions: number[]): number => {
     if (!completions || completions.length === 0) return 0;
-    // return completions.length;
     return completions.reduce((accumulator: number, current: number): number => {
       return accumulator + current;
     });
@@ -44,9 +42,6 @@ const styles = StyleSheet.create({
   },
   aboutText: {
     textAlign: 'left',
-  },
-  actionContainer: {
-    marginTop: 15,
   },
   helpLink: {
     paddingVertical: 15,

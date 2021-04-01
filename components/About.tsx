@@ -4,11 +4,14 @@ import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import { Task } from '../models/Task';
 import * as WebBrowser from 'expo-web-browser';
+import { createTwoButtonAlert } from '../helpers/alerts';
 
 const AboutSection = ({ tasks, setTasks }: {
   tasks: Task[],
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>
 }): JSX.Element => {
+  // const [visible, setVisible] = React.useState({});
+  // const [fades, setFades] = React.useState({});
 
   // https://docs.expo.io/versions/v40.0.0/react-native/animated/
   // fadeAnim will be used as the value for opacity. Initial Value: 0
@@ -64,22 +67,7 @@ const AboutSection = ({ tasks, setTasks }: {
   const openURL = (link: string): void => {
     if (!link) return;
     const msg = `Would you like to open the web page ${link} in your browser? This page will provide you with more information about the topic you selected.`;
-    const callback = () => { WebBrowser.openBrowserAsync(link); }
-    if (Platform.OS === "web") {
-      if (confirm(msg)) {
-        callback();
-      }
-    } else {
-      Alert.alert(
-        "Open in browser?",
-        msg,
-        [
-          { text: "Cancel", onPress: () => { }, style: "cancel" },
-          { text: "Open", onPress: () => { callback(); }, style: "default" }
-        ],
-        { cancelable: true }
-      );
-    }
+    createTwoButtonAlert("Open in browser?", msg, "Open", "default", () => { WebBrowser.openBrowserAsync(link); });
   }
 
   return (
@@ -128,32 +116,7 @@ const AboutSection = ({ tasks, setTasks }: {
 
 const styles = StyleSheet.create({
   container: {
-    // paddingHorizontal: 24,
     maxWidth: "66%",
-  },
-  circleIcon: {
-    paddingRight: 10,
-  },
-  // developmentModeText: {
-  //   marginBottom: 20,
-  //   fontSize: 14,
-  //   lineHeight: 19,
-  //   textAlign: 'center',
-  // },
-  // contentContainer: {
-  //   paddingTop: 30,
-  // },
-  // welcomeImage: {
-  //   width: 100,
-  //   height: 80,
-  //   resizeMode: 'contain',
-  //   marginTop: 3,
-  //   marginLeft: -10,
-  // },
-  introductoryText: {
-    fontSize: 17,
-    lineHeight: 24,
-    textAlign: 'center',
   },
   taskContainer: {
     marginTop: 15,

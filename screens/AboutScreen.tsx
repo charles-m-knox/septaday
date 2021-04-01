@@ -4,8 +4,10 @@ import { StyleSheet, RefreshControl, Platform } from 'react-native';
 import AboutSection from '../components/About';
 import DataControls from '../components/DataControls';
 import { Text, View, ScrollView } from '../components/Themed';
-import * as SQLite from 'expo-sqlite';
-import { getDB, getTaskHistoryFromDB, getQueriesFromDB, getTaskStatsSQL, getTaskDaysSQL } from '../sqlite/sqlite';
+import {
+  getTaskHistoryFromDB,
+  getQueriesFromDB,
+} from '../sqlite/sqlite';
 import { Task, defaultTasks } from '../models/Task';
 import { wait } from '../helpers/helpers';
 import BrandView from '../components/Brand';
@@ -14,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import NotificationControls from '../components/NotificationControls';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
+import { getTaskStatsSQL, getTaskDaysSQL } from '../sqlite/queries';
 
 export default function AboutScreen() {
   const colorScheme = useColorScheme();

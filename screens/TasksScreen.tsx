@@ -5,13 +5,14 @@ import { Ionicons } from '@expo/vector-icons';
 import Tasks from '../components/Tasks';
 import { Text, View, ScrollView } from '../components/Themed';
 import { Task, defaultTasks } from '../models/Task';
-import { getDateInt, getTaskHistoryFromDB, initializeDayTaskHistoryFromDB, initializeDB } from '../sqlite/sqlite';
-import { getHumanDate, getOffsetDaysFromInt, wait } from '../helpers/helpers';
+import { getTaskHistoryFromDB, initializeDB } from '../sqlite/sqlite';
+import { getDateInt, getHumanDate, getOffsetDaysFromInt, wait } from '../helpers/helpers';
 import useColorScheme from '../hooks/useColorScheme';
 import Colors from '../constants/Colors';
 import { setAppBadgeForTodayTasks } from '../helpers/notifications';
+import { useFocusEffect } from '@react-navigation/native';
 
-export default function TasksScreen(): JSX.Element {
+const TasksScreen = (): JSX.Element => {
   const colorScheme = useColorScheme();
   const [refreshing, setRefreshing] = React.useState(false);
   const [tasks, setTasks] = useState(defaultTasks);
@@ -60,11 +61,20 @@ export default function TasksScreen(): JSX.Element {
         setRefreshing(false);
       }
     );
-    // initializeDayTaskHistoryFromDB(db, defaultTasks, tasks, (results: Task[]) => { setTasks(results); }, viewTime, () => {
-    //   console.log(`viewTime initialized tasks for day ${viewTime}`);
-    // });
     return () => { }
   }, [viewTime]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Do something when the tab is opened
+      // getTaskHistoryFromDB((results: Task[]) => { setTasks(results); }, 0, () => {
+      //   getStats(() => {
+      //     setRefreshing(false);
+      //   });
+      // });
+      return () => { };
+    }, [])
+  );
 
   return (
     <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
@@ -113,7 +123,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignContent: 'center',
     justifyContent: 'space-around',
-    // paddingVertical: 30,
   },
   title: {
     fontSize: 20,
@@ -130,3 +139,5 @@ const styles = StyleSheet.create({
     width: '80%',
   },
 });
+
+export default TasksScreen;

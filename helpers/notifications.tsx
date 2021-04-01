@@ -1,9 +1,8 @@
 import Constants from 'expo-constants';
-import { Subscription } from '@unimodules/core';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { getDateInt } from '../sqlite/sqlite';
 import { Task } from '../models/Task';
+import { getDateInt } from './helpers';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({

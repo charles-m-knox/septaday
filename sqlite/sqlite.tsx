@@ -2,20 +2,17 @@ import * as SQLite from 'expo-sqlite';
 import { SQLError, SQLResultSet, SQLTransaction } from 'expo-sqlite';
 import { dbname } from '../constants/general';
 import { Task, defaultTasks } from '../models/Task';
+import { getDateInt } from '../helpers/helpers';
 
-// import { Asset, FileSystem } from 'expo';
-
-// https://docs.expo.io/versions/latest/sdk/sqlite/#importing-an-existing-database
-// export async function openDatabase(pathToDatabaseFile: string): Promise<SQLite.WebSQLDatabase> {
-//     if (!(await FileSystem.getInfoAsync(FileSystem.documentDirectory + 'SQLite')).exists) {
-//         await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'SQLite');
-//     }
-//     await FileSystem.downloadAsync(
-//         Asset.fromModule(require(pathToDatabaseFile)).uri,
-//         FileSystem.documentDirectory + 'SQLite/myDatabaseName.db'
-//     );
-//     return SQLite.openDatabase('myDatabaseName.db');
-// }
+import {
+    dropTasksDBQuery,
+    initializeTasksDBQuery,
+    initializeHistoryDBQuery,
+    todayTaskHistorySelectQuery,
+    deleteTaskQuery,
+    insertTaskQuery,
+    getTaskHistorySQL
+} from './queries';
 
 export const getDB = (): SQLite.WebSQLDatabase => {
     // load task definitions from db
@@ -28,10 +25,6 @@ export const sqlErrCB = (tx: SQLTransaction, error: SQLError): boolean => {
     }
     return false;
 }
-
-const dropTasksDBQuery = 'drop table if exists tasks;'
-const initializeTasksDBQuery = 'create table if not exists tasks (id string primary key not null, name string, about text, link text, sortOrder int);'
-const initializeHistoryDBQuery = 'create table if not exists history (id string not null, completed int, date int);'
 
 export const initializeDB = (tasks: Task[], resultsCallback: (results: Task[]) => void, txEndCallback?: any): void => {
     const db = getDB();
@@ -85,13 +78,6 @@ export const initializeTasksTx = (tx: SQLite.SQLTransaction, defaultTasks: Task[
     });
 }
 
-// https://stackoverflow.com/a/61505926/3798673
-export const getDateInt = () => {
-    const today = new Date();
-    const tzDiff = new Date(1970, 0, 1).getTime();
-    return (new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() - tzDiff) / 1000;
-}
-
 export const initializeDayTaskHistoryFromDB = (defaultTasks: Task[], tasks: Task[], resultsCallback: (results: Task[]) => void, forDate?: number, txEndCallback?: any): void => {
     const db = getDB();
     if (!db) return;
@@ -106,7 +92,6 @@ export const initializeDayTaskHistoryFromDB = (defaultTasks: Task[], tasks: Task
     );
 }
 
-const todayTaskHistorySelectQuery = 'select * from history where id = ? and date = ?';
 export const initializeDayTaskHistoryTx = (tx: SQLite.SQLTransaction, defaultTasks: Task[], tasks: Task[], resultsCallback: (results: Task[]) => void, forDate?: number): void => {
     if (!tx) return;
     const dateInt = forDate ? forDate : getDateInt();
@@ -160,8 +145,6 @@ export const initializeDayTaskHistoryTx = (tx: SQLite.SQLTransaction, defaultTas
     });
 }
 
-const deleteTaskQuery = 'DELETE FROM history WHERE id = ? AND date = ?';
-const insertTaskQuery = 'insert into history (id, completed, date) values (?, ?, ?)';
 export const pushTaskToDB = (task: Task, callback: any, forDate?: number, txEndCallback?: any): void => {
     const db = getDB();
     if (!db) return;
@@ -236,7 +219,6 @@ export const getTaskHistoryFromDB = (resultsCallback: (results: Task[]) => void,
     );
 }
 
-const getTaskHistorySQL: string = `SELECT t.id, h.completed, t.name, t.about, t.link, t.sortOrder, h.date FROM tasks AS t LEFT JOIN history AS h on h.id = t.id WHERE h.date = ? ORDER BY t.sortOrder ASC`;
 export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, resultsCallback: (results: Task[]) => void, forDateInt?: number) => {
     if (!tx) return;
     const dateInt = forDateInt ? forDateInt : getDateInt();
@@ -261,10 +243,6 @@ export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, resultsCallback: (re
         }
     }, sqlErrCB);
 }
-
-export const getTaskStatsSQL: string = `SELECT completed FROM history`;
-export const getTaskDaysSQL: string = `SELECT DISTINCT(date) as date FROM history ORDER BY date`;
-export const dropTaskHistoryForDaySQL: string = `DELETE FROM history WHERE date = ?`;
 
 export const getQueriesFromDB = (queries: string[], callbacks: any[], txEndCallback?: any) => {
     const db = getDB();
@@ -330,4 +308,44 @@ export const getQueryWithArgsTx = (tx: SQLite.SQLTransaction, query: string, arg
             callback(tasksFromTx);
         }
     }, sqlErrCB);
+}
+
+export const doQueriesWithArgsFromDB = (queries: string[], args: any[][], callbacks: any[], txEndCallback?: any) => {
+    const db = getDB();
+    if (!db) return;
+    db.transaction(
+        tx => {
+            queries.forEach((query: string, i: number) => {
+                doQueryWithArgsTx(tx, query, args[i], callbacks[i]);
+            });
+        },
+        (error: SQLite.SQLError): void => { console.log(`doQueriesWithArgsFromDB: err callback: ${error.code} ${error.message}`); },
+        (): void => { console.log(`doQueriesWithArgsFromDB: void callback`); if (txEndCallback) txEndCallback(); }
+    );
+}
+
+export const doQueryWithArgsTx = (tx: SQLite.SQLTransaction, query: string, args: any[], callback: any) => {
+    if (!tx) return;
+    console.log(`doQueryWithArgsTx: ${query}`);
+    tx.executeSql(query, args, (tx: SQLTransaction, resultSet: SQLResultSet | any): void => {
+        if (resultSet.rows['_array']) {
+            // if there is an '_array', it only works on mobile
+            const txResults = resultSet.rows['_array'];
+            console.log(`doQueryWithArgsTx returned ${txResults.length} results`);
+            if (resultSet && txResults && Array.isArray(txResults)) {
+                callback && callback(txResults);
+            } else {
+                callback && callback([]);
+            }
+        } else {
+            const tasksFromTx: any[] = Object.values(resultSet.rows);
+            console.log(`doQueryWithArgsTx returned ${tasksFromTx.length} results`);
+            callback && callback(tasksFromTx);
+        }
+    }, (tx: SQLTransaction, error: SQLError): boolean => {
+        if (error.code || error.message) {
+            console.log(`doQueryWithArgsTx ${query}: err code ${error.code}: ${error.message}`);
+        }
+        return false;
+    })
 }
