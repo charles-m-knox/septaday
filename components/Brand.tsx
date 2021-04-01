@@ -1,33 +1,17 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Image, Platform, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import * as WebBrowser from 'expo-web-browser';
+import { createTwoButtonAlert } from '../helpers/alerts';
 
 const BrandView = (): JSX.Element => {
   const brandUrl = 'https://charlesmknox.com';
-
   const openURL = (link: string): void => {
     if (!link) return;
     const msg = `Would you like to open the web page ${link} in your browser?`;
-    const callback = () => { WebBrowser.openBrowserAsync(link); }
-    if (Platform.OS === "web") {
-      if (confirm(msg)) {
-        callback();
-      }
-    } else {
-      Alert.alert(
-        "Open in browser?",
-        msg,
-        [
-          { text: "Cancel", onPress: () => { }, style: "cancel" },
-          { text: "Open", onPress: () => { callback(); }, style: "default" }
-        ],
-        { cancelable: true }
-      );
-    }
+    createTwoButtonAlert("Open in browser?", msg, "Open", "default", () => { WebBrowser.openBrowserAsync(link); });
   }
-
 
   return (
     <View style={styles.container}>
@@ -63,9 +47,6 @@ const styles = StyleSheet.create({
     maxWidth: "66%",
     width: "66%"
   },
-  leftTextContainer: {
-    textAlign: 'left'
-  },
   brandLogo: {
     width: 96,
     height: 96,
@@ -79,15 +60,6 @@ const styles = StyleSheet.create({
   aboutText: {
     textAlign: 'left',
     marginBottom: 15,
-  },
-  actionContainer: {
-    marginTop: 15,
-  },
-  helpLink: {
-    paddingVertical: 15,
-  },
-  helpText: {
-    textAlign: 'left',
   },
 });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Animated, Alert, Platform } from 'react-native';
+import { StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import { Task } from '../models/Task';
@@ -10,9 +10,6 @@ const AboutSection = ({ tasks, setTasks }: {
   tasks: Task[],
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>
 }): JSX.Element => {
-  // const [visible, setVisible] = React.useState({});
-  // const [fades, setFades] = React.useState({});
-
   // https://docs.expo.io/versions/v40.0.0/react-native/animated/
   // fadeAnim will be used as the value for opacity. Initial Value: 0
   const fadeAnims = tasks.map((task: Task) => { return React.useRef(new Animated.Value(0)).current; });
@@ -20,48 +17,41 @@ const AboutSection = ({ tasks, setTasks }: {
   const [fadeStates, setFadeStates] = React.useState(initialFadeStates);
 
   const fadeToggle = (i: number) => {
+    const newFadeStates = [...fadeStates];
     switch (fadeStates[i]) {
       case 0:
-        // make the element displayed immediately
-        setFadeStates(
-          fadeStates.map((fadeState: number, j: number) => {
-            if (i === j) return 1;
-            return fadeState
-          })
-        );
+        newFadeStates[i] = 1;
+        // make the element display immediately
+        setFadeStates(newFadeStates);
         fadeIn(fadeAnims[i], () => { });
         break;
       case 1:
       default:
         // hide the element only after the animation finishes
         fadeOut(fadeAnims[i], () => {
-          setFadeStates(
-            fadeStates.map((fadeState: number, j: number) => {
-              if (i === j) return 0;
-              return fadeState
-            })
-          )
+          newFadeStates[i] = 0;
+          setFadeStates(newFadeStates);
         });
         return;
     }
   }
 
-  const fadeIn = (fadeAnim: Animated.Value, callback: any) => {
-    // will change fadeAnim value to 1 in 5 seconds
+  const fadeIn = (fadeAnim: Animated.Value, callback?: any) => {
+    // will change fadeAnim value to 1 over the below duration
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 250,
       useNativeDriver: true,
-    }).start(({ finished }) => { callback(finished); });
+    }).start(({ finished }) => { callback && callback(finished); });
   };
 
-  const fadeOut = (fadeAnim: Animated.Value, callback: any) => {
-    // will change fadeAnim value to 0 in 5 seconds
+  const fadeOut = (fadeAnim: Animated.Value, callback?: any) => {
+    // will change fadeAnim value to 0 over the below duration
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 200,
       useNativeDriver: true,
-    }).start(({ finished }) => { callback(finished); });
+    }).start(({ finished }) => { callback && callback(finished); });
   };
 
   const openURL = (link: string): void => {

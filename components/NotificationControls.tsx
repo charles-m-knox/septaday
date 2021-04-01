@@ -6,7 +6,6 @@ import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync, scheduleCalendarPushNotification, schedulePushNotification, setAppBadge } from '../helpers/notifications';
 
 const NotificationControls = (): JSX.Element => {
-
   const [expoPushToken, setExpoPushToken] = useState('');
   const initialNotification: any = {}; // should technically be of type Notifications.Notification
   const [notification, setNotification] = useState(initialNotification);

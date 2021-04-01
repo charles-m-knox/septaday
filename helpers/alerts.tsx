@@ -25,9 +25,7 @@ export const createOneButtonAlert = (title: string, message: string, action: str
         Alert.alert(
             title,
             message,
-            [
-                { text: action, onPress: () => { if (callback) callback(); }, style: style },
-            ],
+            [{ text: action, onPress: () => { callback && callback(); }, style: style }],
             { cancelable: false }
         );
     }
