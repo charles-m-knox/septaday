@@ -73,36 +73,39 @@ const TasksScreen = (): JSX.Element => {
   );
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-      <View style={styles.container}>
-        <View style={styles.titleContainer}>
-          <TouchableOpacity onPress={() => {
-            const newViewTime = getOffsetDaysFromInt(viewTime, -1);
-            setViewTime(newViewTime);
-          }} >
-            <Text style={styles.iconArrowDate}>
-              <Ionicons style={[]} name="arrow-back-circle" size={36} color={Colors[colorScheme].text} />
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {
-            const newViewTime = getDateInt();
-            setViewTime(newViewTime);
-          }} >
-            <Text style={styles.title}>{viewTime === getDateInt() ? 'Today' : getHumanDate(viewTime, false)}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {
-            const newViewTime = getOffsetDaysFromInt(viewTime, 1);
-            setViewTime(newViewTime);
-          }} >
-            <Text style={styles.iconArrowDate}>
-              <Ionicons style={[]} name="arrow-forward-circle" size={36} color={Colors[colorScheme].text} />
-            </Text>
-          </TouchableOpacity>
+    <View style={styles.container}>
+      <ScrollView style={[{ maxHeight: '92%', minWidth: '100%' }]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+        <View style={styles.container}>
+          {/* <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" /> */}
+          <Tasks tasks={tasks} setTasks={setTasks} viewTime={viewTime} />
         </View >
-        <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <Tasks tasks={tasks} setTasks={setTasks} viewTime={viewTime} />
-      </View >
-    </ScrollView>
+      </ScrollView>
+      <View style={styles.separatorThin} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+      <View style={[styles.titleContainer, { maxHeight: '8%' }]}>
+        <TouchableOpacity onPress={() => {
+          const newViewTime = getOffsetDaysFromInt(viewTime, -1);
+          setViewTime(newViewTime);
+        }} >
+          <Text style={styles.iconArrowDate}>
+            <Ionicons style={[]} name="arrow-back-circle" size={32} color={Colors[colorScheme].iconDim} />
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => {
+          const newViewTime = getDateInt();
+          setViewTime(newViewTime);
+        }} >
+          <Text style={styles.title}>{viewTime === getDateInt() ? 'Today' : getHumanDate(viewTime, false)}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => {
+          const newViewTime = getOffsetDaysFromInt(viewTime, 1);
+          setViewTime(newViewTime);
+        }} >
+          <Text style={styles.iconArrowDate}>
+            <Ionicons style={[]} name="arrow-forward-circle" size={32} color={Colors[colorScheme].iconDim} />
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View >
   );
 }
 
@@ -111,14 +114,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 30,
+    paddingVertical: 10,
   },
   titleContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     alignContent: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    width: '100%',
+    paddingTop: 10
   },
   title: {
     fontSize: 20,
@@ -133,6 +138,10 @@ const styles = StyleSheet.create({
     marginVertical: 30,
     height: 1,
     width: '80%',
+  },
+  separatorThin: {
+    height: 1,
+    width: '100%',
   },
 });
 
