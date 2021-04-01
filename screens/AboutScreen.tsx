@@ -17,6 +17,7 @@ import NotificationControls from '../components/NotificationControls';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import { getTaskStatsSQL, getTaskDaysSQL } from '../sqlite/queries';
+import { getTasksFromDB } from '../sqlite/functions';
 
 export default function AboutScreen() {
   const colorScheme = useColorScheme();
@@ -33,7 +34,8 @@ export default function AboutScreen() {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
-    getTaskHistoryFromDB((results: Task[]) => { setTasks(results); }, 0, () => {
+    getTasksFromDB((results: Task[]) => {
+      setTasks(results);
       getStats(() => {
         setRefreshing(false);
       });
@@ -42,7 +44,7 @@ export default function AboutScreen() {
 
   // https://css-tricks.com/run-useeffect-only-once/
   React.useEffect(() => {
-    getTaskHistoryFromDB((results: Task[]) => { setTasks(results); }, 0, () => { getStats() });
+    getTaskHistoryFromDB((results: Task[]) => { setTasks(results); getStats(); });
     return () => { }
   }, [])
 

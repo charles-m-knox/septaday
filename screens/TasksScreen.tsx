@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Tasks from '../components/Tasks';
 import { Text, View, ScrollView } from '../components/Themed';
 import { Task, defaultTasks } from '../models/Task';
-import { getTaskHistoryFromDB, initializeDB } from '../sqlite/sqlite';
+import { initializeDB } from '../sqlite/sqlite';
 import { getDateInt, getHumanDate, getOffsetDaysFromInt, wait } from '../helpers/helpers';
 import useColorScheme from '../hooks/useColorScheme';
 import Colors from '../constants/Colors';
@@ -27,23 +27,25 @@ const TasksScreen = (): JSX.Element => {
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
     console.log(`onRefresh: refreshing for ${viewTime} (${getHumanDate(viewTime)})`);
-    getTaskHistoryFromDB(
+    getTasksFromDB(
       (results: Task[]) => {
         setTasks(results);
         setAppBadgeForTodayTasks(results, viewTime);
-      },
-      viewTime, () => {
         setRefreshing(false);
-      });
+      },
+      viewTime,
+    );
   }
 
   // https://css-tricks.com/run-useeffect-only-once/
   React.useEffect(() => {
+    setRefreshing(true);
     initializeDB(tasks, (initResults: Task[]) => { },
       () => {
         getTasksFromDB((results: Task[]) => {
           setTasks(results);
           setAppBadgeForTodayTasks(results, getDateInt());
+          setRefreshing(false);
         });
       });
     return () => { }
@@ -55,8 +57,8 @@ const TasksScreen = (): JSX.Element => {
     getTasksFromDB(
       (results: Task[]) => {
         setTasks(results);
-        setAppBadgeForTodayTasks(results, viewTime);
         setRefreshing(false);
+        setAppBadgeForTodayTasks(results, viewTime);
       },
       viewTime,
     );
@@ -66,11 +68,6 @@ const TasksScreen = (): JSX.Element => {
   useFocusEffect(
     React.useCallback(() => {
       // Do something when the tab is opened
-      // getTaskHistoryFromDB((results: Task[]) => { setTasks(results); }, 0, () => {
-      //   getStats(() => {
-      //     setRefreshing(false);
-      //   });
-      // });
       return () => { };
     }, [])
   );

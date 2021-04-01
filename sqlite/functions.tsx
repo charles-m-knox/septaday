@@ -4,10 +4,11 @@ import { doQueriesWithArgsFromDB } from "./sqlite";
 import { getDateInt } from '../helpers/helpers';
 
 export const getTasksFromDB = (cb: (results: Task[]) => void, forDateInt?: number): void => {
+    const dt = forDateInt ? forDateInt : getDateInt();
     doQueriesWithArgsFromDB(
         [getTaskHistorySQL],
-        [[forDateInt ? forDateInt : getDateInt()]],
+        [[dt]],
         [cb],
-        () => { console.log(`getTasksFromDB: ${forDateInt} done!`) }
+        () => { console.log(`getTasksFromDB: ${dt} done!`) }
     );
 }
