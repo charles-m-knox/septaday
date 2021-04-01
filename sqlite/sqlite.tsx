@@ -338,9 +338,9 @@ export const doQueryWithArgsTx = (tx: SQLite.SQLTransaction, query: string, args
                 callback && callback([]);
             }
         } else {
-            const tasksFromTx: any[] = Object.values(resultSet.rows);
-            console.log(`doQueryWithArgsTx returned ${tasksFromTx.length} results`);
-            callback && callback(tasksFromTx);
+            const resultsFromTx: any[] = Object.values(resultSet.rows);
+            console.log(`doQueryWithArgsTx returned ${resultsFromTx.length} results`);
+            callback && callback(resultsFromTx);
         }
     }, (tx: SQLTransaction, error: SQLError): boolean => {
         if (error.code || error.message) {

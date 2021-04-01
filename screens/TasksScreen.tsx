@@ -11,6 +11,7 @@ import useColorScheme from '../hooks/useColorScheme';
 import Colors from '../constants/Colors';
 import { setAppBadgeForTodayTasks } from '../helpers/notifications';
 import { useFocusEffect } from '@react-navigation/native';
+import { getTasksFromDB } from '../sqlite/functions';
 
 const TasksScreen = (): JSX.Element => {
   const colorScheme = useColorScheme();
@@ -19,10 +20,10 @@ const TasksScreen = (): JSX.Element => {
   const [viewTime, setViewTime] = useState(getDateInt());
 
   const onRefresh = React.useCallback(() => {
-    refreshForTime(viewTime);
+    refreshForTime();
   }, [viewTime]);
 
-  const refreshForTime = (newViewTime: number) => {
+  const refreshForTime = () => {
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
     console.log(`onRefresh: refreshing for ${viewTime} (${getHumanDate(viewTime)})`);
@@ -40,7 +41,7 @@ const TasksScreen = (): JSX.Element => {
   React.useEffect(() => {
     initializeDB(tasks, (initResults: Task[]) => { },
       () => {
-        getTaskHistoryFromDB((results: Task[]) => {
+        getTasksFromDB((results: Task[]) => {
           setTasks(results);
           setAppBadgeForTodayTasks(results, getDateInt());
         });
@@ -51,15 +52,13 @@ const TasksScreen = (): JSX.Element => {
   React.useEffect(() => {
     console.log('viewTime changed');
     setRefreshing(true);
-    getTaskHistoryFromDB(
+    getTasksFromDB(
       (results: Task[]) => {
         setTasks(results);
         setAppBadgeForTodayTasks(results, viewTime);
+        setRefreshing(false);
       },
       viewTime,
-      () => {
-        setRefreshing(false);
-      }
     );
     return () => { }
   }, [viewTime]);
