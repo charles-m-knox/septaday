@@ -80,18 +80,24 @@ export default function AboutScreen() {
     )
   }
 
+  // https://reactnavigation.org/docs/use-focus-effect/#running-asynchronous-effects
   useFocusEffect(
     React.useCallback(() => {
       // Do something when the tab is opened
-      setRefreshing(true);
-      getTasksFromDB((results: Task[]) => {
-        if (!results) return;
-        setTasks(results);
-        getStats(() => {
-          setRefreshing(false);
-        })
-      });
-      return () => { };
+      let isActive = true;
+      if (isActive) {
+        setRefreshing(true);
+        getTasksFromDB((results: Task[]) => {
+          if (!results) return;
+          setTasks(results);
+          getStats(() => {
+            setRefreshing(false);
+          })
+        });
+      }
+      return () => {
+        isActive = false;
+      };
     }, [])
   );
 

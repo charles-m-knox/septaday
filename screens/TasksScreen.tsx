@@ -50,7 +50,7 @@ const TasksScreen = (): JSX.Element => {
   }, []);
 
   React.useEffect(() => {
-    console.log('viewTime changed');
+    console.log('tasks screen: viewTime changed');
     setRefreshing(true);
     getTasksFromDB(
       (results: Task[]) => {
@@ -63,7 +63,7 @@ const TasksScreen = (): JSX.Element => {
   }, [viewTime]);
 
   React.useEffect(() => {
-    console.log('tasks component: tasks changed');
+    console.log('tasks screen: tasks changed');
     if (viewTime === getDateInt()) {
       const tasksIncomplete = tasks.reduce((acc: number, current: Task): number => acc + (current.completed ? 0 : 1), 0);
       console.log(`tasks updated, incomplete tasks for today: ${tasksIncomplete}`);
