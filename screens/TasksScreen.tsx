@@ -5,12 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 import Tasks from '../components/Tasks';
 import { Text, View, ScrollView } from '../components/Themed';
 import { Task, defaultTasks } from '../models/Task';
-import { initializeDB } from '../helpers/sqlite';
 import { getDateInt, getHumanDate, getOffsetDaysFromInt, wait } from '../helpers/helpers';
 import useColorScheme from '../hooks/useColorScheme';
 import Colors from '../constants/Colors';
 import { useFocusEffect } from '@react-navigation/native';
-import { getTasksFromDB } from '../helpers/functions';
+import { getTasksFromDB, initializeDB } from '../helpers/functions';
 import { setAppBadge } from '../helpers/notifications';
 
 const TasksScreen = (): JSX.Element => {
@@ -39,13 +38,14 @@ const TasksScreen = (): JSX.Element => {
   // https://css-tricks.com/run-useeffect-only-once/
   React.useEffect(() => {
     setRefreshing(true);
-    initializeDB(tasks, (initResults: Task[]) => { },
+    initializeDB(
       () => {
         getTasksFromDB((results: Task[]) => {
           setTasks(results);
           setRefreshing(false);
         });
-      });
+      },
+    );
     return () => { }
   }, []);
 

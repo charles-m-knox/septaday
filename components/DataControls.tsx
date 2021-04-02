@@ -3,7 +3,6 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import { Task } from '../models/Task';
-import { initializeDB } from '../helpers/sqlite';
 import { createOneButtonAlert, createTwoButtonAlert } from '../helpers/alerts';
 import {
   destroyAlertAction,
@@ -14,7 +13,7 @@ import {
   initializeAlertTitle
 } from '../constants/general';
 import { exportDB, importDB } from '../helpers/datacontrols';
-import { resetDB } from '../helpers/functions';
+import { resetDB, initializeDB, getTasksFromDB } from '../helpers/functions';
 
 const DataControls = ({ tasks, setTasks }: {
   tasks: Task[],
@@ -45,14 +44,37 @@ const DataControls = ({ tasks, setTasks }: {
         </TouchableOpacity>
       </View>
       <View>
-        <TouchableOpacity onPress={() => { createTwoButtonAlert(destroyAlertTitle, destroyAlertMessage, destroyAlertAction, 'destructive', () => { resetDB(createOneButtonAlert('Destroy Data', 'Done!', 'OK', 'default')); }); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={() => { createTwoButtonAlert(destroyAlertTitle, destroyAlertMessage, destroyAlertAction, 'destructive', () => { resetDB(() => { createOneButtonAlert('Destroy Data', 'Done!', 'OK', 'default') }); }); }} style={styles.helpLink}>
           <Text style={styles.helpText} lightColor={Colors.light.tint}>
             Destroy all data.
           </Text>
         </TouchableOpacity>
       </View>
       <View>
-        <TouchableOpacity onPress={() => { createTwoButtonAlert(initializeAlertTitle, initializeAlertMessage, initializeAlertAction, 'destructive', () => { initializeDB(tasks, (results: Task[]) => { setTasks(results); }, createOneButtonAlert('Initialize Data', 'Done!', 'OK', 'default')); }); }} style={styles.helpLink}>
+        <TouchableOpacity onPress={
+          () => {
+            createTwoButtonAlert(
+              initializeAlertTitle,
+              initializeAlertMessage,
+              initializeAlertAction,
+              'destructive',
+              () => {
+                initializeDB(
+                  () => {
+                    getTasksFromDB((results: Task[]) => {
+                      setTasks(results);
+                      createOneButtonAlert(
+                        'Initialize Data',
+                        'Done!',
+                        'OK',
+                        'default'
+                      )
+                    });
+                  },
+                );
+              }
+            );
+          }} style={styles.helpLink}>
           <Text style={styles.helpText} lightColor={Colors.light.tint}>
             Initialize all data.
           </Text>
