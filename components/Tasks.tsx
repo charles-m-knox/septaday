@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
-import { defaultTasks, Task } from '../models/Task';
+import { Task } from '../models/Task';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
-import { initializeDayTaskHistoryFromDB } from '../helpers/sqlite';
 import useColorScheme from '../hooks/useColorScheme';
 import { getDateInt, getHumanDate } from '../helpers/helpers';
 import { createTwoButtonAlert } from '../helpers/alerts';

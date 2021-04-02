@@ -1,7 +1,17 @@
 import { defaultTasks, Task } from "../models/Task";
-import { deleteTaskQuery, dropHistoryDBQuery, dropTaskHistoryForDaySQL, dropTasksDBQuery, getTaskHistorySQL, initializeHistoryDBQuery, initializeTaskQuery, initializeTasksDBQuery, insertTaskQuery } from "./queries";
 import { doQueriesWithArgsFromDB } from "./sqlite";
 import { getDateInt } from './helpers';
+import {
+    deleteTaskQuery,
+    dropHistoryDBQuery,
+    dropTaskHistoryForDaySQL,
+    dropTasksDBQuery,
+    getTaskHistorySQL,
+    initializeHistoryDBQuery,
+    initializeTaskQuery,
+    initializeTasksDBQuery,
+    insertTaskQuery
+} from "./queries";
 
 export const getTasksFromDB = (cb: (results: Task[]) => void, forDateInt?: number): void => {
     const dt = forDateInt ? forDateInt : getDateInt();
