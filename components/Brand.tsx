@@ -7,6 +7,7 @@ import { createTwoButtonAlert } from '../helpers/alerts';
 
 const BrandView = (): JSX.Element => {
   const brandUrl = 'https://charlesmknox.com';
+
   const openURL = (link: string): void => {
     if (!link) return;
     const msg = `Would you like to open the web page ${link} in your browser?`;

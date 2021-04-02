@@ -2,16 +2,14 @@ import * as SQLite from 'expo-sqlite';
 import { SQLError, SQLResultSet, SQLTransaction } from 'expo-sqlite';
 import { dbname } from '../constants/general';
 import { Task, defaultTasks } from '../models/Task';
-import { getDateInt } from '../helpers/helpers';
+import { getTasksFromDB } from './functions';
+import { getDateInt } from './helpers';
 
 import {
     dropTasksDBQuery,
     initializeTasksDBQuery,
     initializeHistoryDBQuery,
     todayTaskHistorySelectQuery,
-    deleteTaskQuery,
-    insertTaskQuery,
-    getTaskHistorySQL
 } from './queries';
 
 export const getDB = (): SQLite.WebSQLDatabase => {
@@ -126,7 +124,7 @@ export const initializeDayTaskHistoryTx = (tx: SQLite.SQLTransaction, defaultTas
                             completedTransactions += 1;
                             if (completedTransactions === defaultTasks.length) {
                                 console.log(`initializeTodayTaskHistory: finished inserting ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
-                                getTaskHistoryTx(tx, resultsCallback, forDate);
+                                getTasksFromDB(resultsCallback, forDate);
                                 return;
                             }
                             console.log(`initializeTodayTaskHistory: inserted ${task.id}, ${completedTransactions}/${defaultTasks.length}`);
@@ -143,171 +141,6 @@ export const initializeDayTaskHistoryTx = (tx: SQLite.SQLTransaction, defaultTas
             sqlErrCB
         )
     });
-}
-
-export const pushTaskToDB = (task: Task, callback: any, forDate?: number, txEndCallback?: any): void => {
-    const db = getDB();
-    if (!db) return;
-    const dateInt = forDate ? forDate : getDateInt();
-    console.log(`pushTaskToDB pushing ${task.id} to db`);
-    db.transaction(
-        tx => {
-            tx.executeSql(deleteTaskQuery, [task.id, dateInt], (tx: SQLTransaction, resultSet: SQLResultSet): void => {
-                const tasksArray = Object.values(resultSet.rows);
-                console.log(`pushTaskToDB: deleted ${tasksArray} rows`)
-                tx.executeSql(insertTaskQuery, [task.id, task.completed ? 1 : 0, dateInt], (tx: SQLTransaction, resultSet: SQLResultSet): void => {
-                    const resultsArray = Object.values(resultSet.rows);
-                    console.log(`pushTaskToDB: inserted ${resultsArray.length} history item for today: ${task.name}`);
-                    callback();
-                });
-            })
-        },
-        (error: SQLite.SQLError): void => { console.log(`pushTaskToDB: err callback: ${error.code} ${error.message}`); },
-        (): void => { console.log(`pushTaskToDB: void callback`); if (txEndCallback) txEndCallback(); }
-    );
-}
-
-export const pushTasksToDB = (tasks: Task[], callback: any, forDate?: number, txEndCallback?: any): void => {
-    const db = getDB();
-    if (!db) return;
-    const dateInt = forDate ? forDate : getDateInt();
-    let completedTransactions = 0;
-    db.transaction(
-        tx => {
-            tasks.forEach((task: Task) => {
-                console.log(`pushTaskToDB: pushing ${task.id} to db`);
-                tx.executeSql(deleteTaskQuery, [task.id, dateInt], (tx: SQLTransaction, resultSet: SQLResultSet): void => {
-                    const tasksArray = Object.values(resultSet.rows);
-                    console.log(`pushTaskToDB: deleted ${tasksArray.length} rows`)
-                    tx.executeSql(insertTaskQuery, [task.id, task.completed ? 1 : 0, dateInt], (tx: SQLTransaction, resultSet: SQLResultSet): void => {
-                        completedTransactions += 1;
-                        const resultsArray = Object.values(resultSet.rows);
-                        console.log(`pushTaskToDB: inserted ${resultsArray.length} history item for today: ${task.name} (${completedTransactions}/${tasks.length})`);
-                        if (completedTransactions === tasks.length) {
-                            callback();
-                        }
-                    }, sqlErrCB);
-                }, sqlErrCB);
-            })
-        },
-        (error: SQLite.SQLError): void => { console.log(`pushTasksToDB: err callback: ${error.code} ${error.message}`); },
-        (): void => { console.log(`pushTasksToDB: void callback`); if (txEndCallback) txEndCallback(); }
-    );
-}
-
-export const resetDB = (txEndCallback?: any) => {
-    const db = getDB();
-    if (db) {
-        console.log(`resetDB: starting`);
-        db.transaction(
-            tx => {
-                tx.executeSql(`DROP TABLE tasks`, undefined, (_, { rows }) => { console.log(`resetDB: reset tasks`); }, sqlErrCB);
-                tx.executeSql(`DROP TABLE history`, undefined, (_, { rows }) => { console.log(`resetDB: reset history`); }, sqlErrCB);
-            },
-            (error: SQLite.SQLError): void => { console.log(`resetDB: err callback: ${error.code} ${error.message}`); },
-            (): void => { console.log(`resetDB: void callback`); if (txEndCallback) txEndCallback(); }
-        );
-    }
-}
-
-export const getTaskHistoryFromDB = (resultsCallback: (results: Task[]) => void, forDateInt?: number, txEndCallback?: any) => {
-    const db = getDB();
-    if (!db) return;
-    db.transaction(tx => getTaskHistoryTx(tx, resultsCallback, forDateInt),
-        (error: SQLite.SQLError): void => { console.log(`getTaskHistoryFromDB: err callback: ${error.code} ${error.message}`); },
-        (): void => { console.log(`getTaskHistoryFromDB: void callback`); if (txEndCallback) txEndCallback(); }
-    );
-}
-
-export const getTaskHistoryTx = (tx: SQLite.SQLTransaction, resultsCallback: (results: Task[]) => void, forDateInt?: number) => {
-    if (!tx) return;
-    const dateInt = forDateInt ? forDateInt : getDateInt();
-    console.log(`getTaskHistoryTx: executing select sql for date ${dateInt}`);
-    tx.executeSql(getTaskHistorySQL, [dateInt], (tx: SQLTransaction, resultSet: SQLResultSet | any): void => {
-        if (resultSet.rows['_array']) {
-            // if there is an '_array', it only works on mobile
-            const tasksFromTx = resultSet.rows['_array'];
-            console.log(`getTaskHistoryTx returned ${tasksFromTx.length} results`);
-            if (resultSet && resultSet.rows['_array'] && Array.isArray(resultSet.rows['_array'])) {
-                resultsCallback(tasksFromTx.map((task: any, i: number) => {
-                    return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, link: task.link, order: task.sortOrder, date: task.date };
-                }));
-            }
-        } else {
-            const tasksFromTx = Object.values(resultSet.rows);
-            console.log(`getTaskHistoryTx returned ${tasksFromTx.length} results`);
-            // marshal into a task array
-            resultsCallback(tasksFromTx.map((task: any, i: number) => {
-                return { name: task.name, id: task.id, completed: task.completed === 1 ? true : false, about: task.about, link: task.link, order: task.sortOrder, date: task.date };
-            }));
-        }
-    }, sqlErrCB);
-}
-
-export const getQueriesFromDB = (queries: string[], callbacks: any[], txEndCallback?: any) => {
-    const db = getDB();
-    if (!db) return;
-    db.transaction(
-        tx => {
-            queries.forEach((query: string, i: number) => {
-                getQueryTx(tx, query, callbacks[i]);
-            })
-        },
-        (error: SQLite.SQLError): void => { console.log(`getQueriesWithArgsFromDB: err callback: ${error.code} ${error.message}`); },
-        (): void => { console.log(`getQueriesWithArgsFromDB: void callback`); if (txEndCallback) txEndCallback(); }
-    );
-}
-
-export const getQueryTx = (tx: SQLite.SQLTransaction, query: string, callback: any) => {
-    if (!tx) return;
-    console.log(`getQueryTx: ${query}`);
-    tx.executeSql(query, [], (tx: SQLTransaction, resultSet: SQLResultSet | any): void => {
-        if (resultSet.rows['_array']) {
-            // if there is an '_array', it only works on mobile
-            const txResults = resultSet.rows['_array'];
-            console.log(`getQueryTx returned ${txResults.length} results`);
-            if (resultSet && resultSet.rows['_array'] && resultSet.rows['_array'].length > 0) {
-                callback(txResults);
-            }
-        } else {
-            const tasksFromTx = Object.values(resultSet.rows);
-            console.log(`getQueryTx returned ${tasksFromTx.length} results`);
-            callback(tasksFromTx);
-        }
-    }, sqlErrCB);
-}
-
-export const getQueriesWithArgsFromDB = (queries: string[], args: any[][], callbacks: any[], txEndCallback?: any) => {
-    const db = getDB();
-    if (!db) return;
-    db.transaction(
-        tx => {
-            queries.forEach((query: string, i: number) => {
-                getQueryWithArgsTx(tx, query, args[i], callbacks[i]);
-            })
-        },
-        (error: SQLite.SQLError): void => { console.log(`getQueriesFromDB: err callback: ${error.code} ${error.message}`); },
-        (): void => { console.log(`getQueriesFromDB: void callback`); if (txEndCallback) txEndCallback(); }
-    );
-}
-
-export const getQueryWithArgsTx = (tx: SQLite.SQLTransaction, query: string, args: any[], callback: any) => {
-    if (!tx) return;
-    console.log(`getQueryWithArgsTx: ${query}`);
-    tx.executeSql(query, args, (tx: SQLTransaction, resultSet: SQLResultSet | any): void => {
-        if (resultSet.rows['_array']) {
-            // if there is an '_array', it only works on mobile
-            const txResults = resultSet.rows['_array'];
-            console.log(`getQueryWithArgsTx returned ${txResults.length} results`);
-            if (resultSet && txResults && Array.isArray(txResults)) {
-                callback(txResults);
-            }
-        } else {
-            const tasksFromTx = Object.values(resultSet.rows);
-            console.log(`getQueryWithArgsTx returned ${tasksFromTx.length} results`);
-            callback(tasksFromTx);
-        }
-    }, sqlErrCB);
 }
 
 export const doQueriesWithArgsFromDB = (queries: string[], args: any[][], callbacks: any[], txEndCallback?: any) => {

@@ -3,7 +3,7 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import { Task } from '../models/Task';
-import { initializeDB, resetDB } from '../sqlite/sqlite';
+import { initializeDB } from '../helpers/sqlite';
 import { createOneButtonAlert, createTwoButtonAlert } from '../helpers/alerts';
 import {
   destroyAlertAction,
@@ -14,6 +14,7 @@ import {
   initializeAlertTitle
 } from '../constants/general';
 import { exportDB, importDB } from '../helpers/datacontrols';
+import { resetDB } from '../helpers/functions';
 
 const DataControls = ({ tasks, setTasks }: {
   tasks: Task[],

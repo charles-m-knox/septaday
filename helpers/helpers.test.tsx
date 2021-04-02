@@ -1,6 +1,17 @@
+import { getDate } from 'date-fns';
 import * as helpers from './helpers';
 
+// https://jestjs.io/docs/timer-mocks
+jest.useFakeTimers();
+test("wait should wait N number of seconds before returning", () => {
+    helpers.wait(1000);
+    expect(setTimeout).toHaveBeenCalledTimes(1);
+    expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 1000);
+});
+
 test("getDateInt should return the UTC seconds value of a given current date", () => {
+    const today = new Date();
+    const tzDiff = new Date(1970, 0, 1).getTime();
     interface Test {
         input: Date | undefined;
         output: number;
@@ -22,12 +33,10 @@ test("getDateInt should return the UTC seconds value of a given current date", (
             input: new Date(2021, 2, 20, 0, 0, 0, 0),
             output: 1616198400,
         },
-        // uncomment and use https://www.epochconverter.com/ to test the input
-        // for today's date - this is awkward to test otherwise
-        // {
-        //     input: undefined,
-        //     output: 1617148800,
-        // }
+        {
+            input: undefined,
+            output: (new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() - tzDiff) / 1000,
+        }
     ];
     testTable.forEach((test: Test) => {
         expect(helpers.getDateInt(test.input)).toEqual(test.output);
@@ -35,9 +44,11 @@ test("getDateInt should return the UTC seconds value of a given current date", (
 });
 
 test("getOffsetDaysFromInt should return the correct dates", () => {
+    const today = new Date();
+    const tzDiff = new Date(1970, 0, 1).getTime();
     interface Test {
         input: number;
-        inputDaysOffset: number;
+        inputDaysOffset: number | undefined;
         output: number;
     }
     const testTable: Test[] = [
@@ -66,6 +77,11 @@ test("getOffsetDaysFromInt should return the correct dates", () => {
             inputDaysOffset: -2,
             output: 1616025600,
         },
+        {
+            input: (new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() - tzDiff) / 1000, // for today,
+            inputDaysOffset: undefined,
+            output: (new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() - tzDiff) / 1000,
+        },
     ];
     testTable.forEach((test: Test) => {
         expect(helpers.getOffsetDaysFromInt(test.input, test.inputDaysOffset)).toEqual(test.output);
@@ -75,7 +91,7 @@ test("getOffsetDaysFromInt should return the correct dates", () => {
 test("getHumanDate should return a human-readable date", () => {
     interface Test {
         input: number;
-        inputIncludeWeekday: boolean;
+        inputIncludeWeekday: boolean | undefined;
         output: string;
     }
     const testTable: Test[] = [
@@ -91,7 +107,7 @@ test("getHumanDate should return a human-readable date", () => {
         },
         {
             input: 1615507200, // new Date(2021, 2, 12, 0, 0, 0, 0),
-            inputIncludeWeekday: true,
+            inputIncludeWeekday: undefined,
             output: "Friday, 3/12/2021",
         },
         {
@@ -108,6 +124,26 @@ test("getHumanDate should return a human-readable date", () => {
             input: 1617193823, // new Date(2021, 2, 31, 12, 30, 23, 0),
             inputIncludeWeekday: false,
             output: "3/31/2021",
+        },
+        {
+            input: new Date(2021, 3, 1, 0, 0, 0, 0).getTime() / 1000,
+            inputIncludeWeekday: true,
+            output: "Thursday, 4/1/2021",
+        },
+        {
+            input: new Date(2021, 3, 4, 0, 0, 0, 0).getTime() / 1000,
+            inputIncludeWeekday: true,
+            output: "Sunday, 4/4/2021",
+        },
+        {
+            input: new Date(2021, 3, 5, 0, 0, 0, 0).getTime() / 1000,
+            inputIncludeWeekday: true,
+            output: "Monday, 4/5/2021",
+        },
+        {
+            input: new Date(2021, 3, 6, 0, 0, 0, 0).getTime() / 1000,
+            inputIncludeWeekday: true,
+            output: "Tuesday, 4/6/2021",
         },
     ];
     testTable.forEach((test: Test) => {

@@ -1,8 +1,6 @@
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { Task } from '../models/Task';
-import { getDateInt } from './helpers';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -55,20 +53,6 @@ export async function scheduleCalendarPushNotification() {
     }).catch((error: string) => {
         console.error(`scheduleCalendarPushNotification error: ${error}`)
     });
-}
-
-export const setAppBadgeForTodayTasks = (todayTasks: Task[], currentViewTime: number) => {
-    const nowTime = getDateInt();
-    console.log(`setAppBadgeForTodayTasks: ${currentViewTime} vs ${nowTime}`);
-    if (currentViewTime !== nowTime || (Platform.OS !== "ios" && Platform.OS !== "android")) return;
-    let result = 0;
-    todayTasks.forEach((task: Task) => {
-        if (task.completed === false) {
-            result += 1;
-        }
-    });
-    console.log(`setAppBadgeForTodayTasks: ${result}`);
-    Notifications.setBadgeCountAsync(result);
 }
 
 export const setAppBadge = async (count: number) => {

@@ -64,9 +64,6 @@ export const getHumanDate = (date: number, includeWeekday: boolean = true): stri
     }
     let day = '';
     switch (d.getUTCDay()) {
-        case 0:
-            day = 'Sunday';
-            break;
         case 1:
             day = 'Monday';
             break;

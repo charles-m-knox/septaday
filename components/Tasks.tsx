@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
-import { Alert, Platform, StyleSheet, TouchableOpacity } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
 import { defaultTasks, Task } from '../models/Task';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
-import {
-  getTaskHistoryFromDB,
-  initializeDayTaskHistoryFromDB,
-  pushTasksToDB,
-  pushTaskToDB
-} from '../sqlite/sqlite';
+import { initializeDayTaskHistoryFromDB } from '../helpers/sqlite';
 import useColorScheme from '../hooks/useColorScheme';
-import { setAppBadgeForTodayTasks } from '../helpers/notifications';
 import { getDateInt, getHumanDate } from '../helpers/helpers';
 import { createTwoButtonAlert } from '../helpers/alerts';
-import { deleteDayTasks, getTasksFromDB, updateTask } from '../sqlite/functions';
+import { deleteDayTasks, getTasksFromDB, updateTask, updateTasks } from '../helpers/functions';
+import { getCompletedTasks } from '../helpers/taskhelpers';
 
 const Tasks = ({ tasks, setTasks, viewTime }: {
   tasks: Task[],
@@ -23,21 +18,6 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
   viewTime: number,
 }): JSX.Element => {
   const colorScheme = useColorScheme();
-
-  const getCompletedTasksForDay = (allTasks: Task[]): number => {
-    let result = 0;
-    allTasks.forEach((task: Task) => {
-      if (task.completed === true) {
-        result += 1;
-      }
-    });
-    return result;
-  }
-
-  React.useEffect(() => {
-    console.log('viewTime changed');
-    return () => { }
-  }, [viewTime]);
 
   return (
     <View style={styles.container}>
@@ -54,7 +34,7 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
           style={styles.introductoryText}
           lightColor="rgba(0,0,0,0.8)"
           darkColor="rgba(255,255,255,0.8)">
-          You've completed {getCompletedTasksForDay(tasks)}/{tasks.length} tasks.
+          You've completed {getCompletedTasks(tasks)}/{tasks.length} tasks.
         </Text>
       </View>
       {
@@ -135,27 +115,17 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
 const handleTaskPress = (setTasks: React.Dispatch<React.SetStateAction<Task[]>>, task: Task, viewTime: number): void => {
   updateTask(
     { ...task, completed: !task.completed },
-    () => { getTasksFromDB((results: Task[]) => { results && setTasks(results); }, viewTime) },
+    () => { getTasksFromDB((results: Task[]) => { if (results) { setTasks(results); } }, viewTime) },
     viewTime,
   );
 }
 
 const completeAllTasks = (tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, viewTime: number): void => {
-  const newTasks: Task[] = tasks.map((originalTask: Task, j: number) => {
-    const newTask: Task = { ...originalTask, completed: true, };
-    return newTask;
-  });
-  newTasks.sort((a: Task, b: Task) => a.order - b.order);
-  pushTasksToDB(newTasks, () => {
-    console.log('completeAllTasks: done');
-    getTasksFromDB(
-      (results: Task[]) => {
-        setTasks(results);
-        setAppBadgeForTodayTasks(results, viewTime);
-      },
-      viewTime,
-    );
-  }, viewTime);
+  updateTasks(
+    tasks.map((task: Task): Task => { return { ...task, completed: true } }),
+    () => { getTasksFromDB((results: Task[]) => { if (results) { setTasks(results); } }, viewTime) },
+    viewTime,
+  )
 }
 
 const styles = StyleSheet.create({

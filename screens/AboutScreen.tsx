@@ -6,7 +6,7 @@ import DataControls from '../components/DataControls';
 import { Text, View, ScrollView } from '../components/Themed';
 import {
   doQueriesWithArgsFromDB,
-} from '../sqlite/sqlite';
+} from '../helpers/sqlite';
 import { Task, defaultTasks } from '../models/Task';
 import { wait } from '../helpers/helpers';
 import BrandView from '../components/Brand';
@@ -15,8 +15,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import NotificationControls from '../components/NotificationControls';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
-import { getTaskStatsSQL, getTaskDaysSQL } from '../sqlite/queries';
-import { getTasksFromDB } from '../sqlite/functions';
+import { getTaskStatsSQL, getTaskDaysSQL } from '../helpers/queries';
+import { getTasksFromDB } from '../helpers/functions';
 
 export default function AboutScreen() {
   const colorScheme = useColorScheme();

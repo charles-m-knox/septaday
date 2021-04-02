@@ -5,13 +5,13 @@ import { Ionicons } from '@expo/vector-icons';
 import Tasks from '../components/Tasks';
 import { Text, View, ScrollView } from '../components/Themed';
 import { Task, defaultTasks } from '../models/Task';
-import { initializeDB } from '../sqlite/sqlite';
+import { initializeDB } from '../helpers/sqlite';
 import { getDateInt, getHumanDate, getOffsetDaysFromInt, wait } from '../helpers/helpers';
 import useColorScheme from '../hooks/useColorScheme';
 import Colors from '../constants/Colors';
-import { setAppBadgeForTodayTasks } from '../helpers/notifications';
 import { useFocusEffect } from '@react-navigation/native';
-import { getTasksFromDB } from '../sqlite/functions';
+import { getTasksFromDB } from '../helpers/functions';
+import { setAppBadge } from '../helpers/notifications';
 
 const TasksScreen = (): JSX.Element => {
   const colorScheme = useColorScheme();
@@ -30,7 +30,6 @@ const TasksScreen = (): JSX.Element => {
     getTasksFromDB(
       (results: Task[]) => {
         setTasks(results);
-        setAppBadgeForTodayTasks(results, viewTime);
         setRefreshing(false);
       },
       viewTime,
@@ -44,7 +43,6 @@ const TasksScreen = (): JSX.Element => {
       () => {
         getTasksFromDB((results: Task[]) => {
           setTasks(results);
-          setAppBadgeForTodayTasks(results, getDateInt());
           setRefreshing(false);
         });
       });
@@ -58,12 +56,21 @@ const TasksScreen = (): JSX.Element => {
       (results: Task[]) => {
         setTasks(results);
         setRefreshing(false);
-        setAppBadgeForTodayTasks(results, viewTime);
       },
       viewTime,
     );
     return () => { }
   }, [viewTime]);
+
+  React.useEffect(() => {
+    console.log('tasks component: tasks changed');
+    if (viewTime === getDateInt()) {
+      const tasksIncomplete = tasks.reduce((acc: number, current: Task): number => acc + (current.completed ? 0 : 1), 0);
+      console.log(`tasks updated, incomplete tasks for today: ${tasksIncomplete}`);
+      setAppBadge(tasksIncomplete);
+    }
+    return () => { }
+  }, [tasks]);
 
   useFocusEffect(
     React.useCallback(() => {

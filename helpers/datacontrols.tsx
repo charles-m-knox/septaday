@@ -1,26 +1,14 @@
-import { StyleSheet, TouchableOpacity } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
-import { Task } from '../models/Task';
 import { createOneButtonAlert, createTwoButtonAlert } from '../helpers/alerts';
-import {
-    dbname,
-    destroyAlertAction,
-    destroyAlertMessage,
-    destroyAlertTitle,
-    initializeAlertAction,
-    initializeAlertMessage,
-    initializeAlertTitle
-} from '../constants/general';
-
+import { dbname } from '../constants/general';
 
 export const getDBFilePath = (): string => {
     const dd = FileSystem.documentDirectory ? FileSystem.documentDirectory : '';
     if (!dd) return '';
     return `${dd}/SQLite/${dbname}`;
 }
-
 
 export const importDB = () => {
     const dbFilePath = getDBFilePath();
