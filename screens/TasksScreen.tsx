@@ -94,7 +94,7 @@ const TasksScreen = (): JSX.Element => {
           setViewTime(newViewTime);
         }} >
           <Text style={styles.iconArrowDate}>
-            <Ionicons style={[]} name="arrow-back-circle" size={32} color={Colors[colorScheme].iconDim} />
+            <Ionicons style={[]} name="chevron-back" size={32} color={Colors[colorScheme].iconDim} />
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => {
@@ -108,7 +108,7 @@ const TasksScreen = (): JSX.Element => {
           setViewTime(newViewTime);
         }} >
           <Text style={styles.iconArrowDate}>
-            <Ionicons style={[]} name="arrow-forward-circle" size={32} color={Colors[colorScheme].iconDim} />
+            <Ionicons style={[]} name="chevron-forward" size={32} color={Colors[colorScheme].iconDim} />
           </Text>
         </TouchableOpacity>
       </View>
