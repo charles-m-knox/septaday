@@ -9,7 +9,7 @@ import { initializeDayTaskHistoryFromDB } from '../helpers/sqlite';
 import useColorScheme from '../hooks/useColorScheme';
 import { getDateInt, getHumanDate } from '../helpers/helpers';
 import { createTwoButtonAlert } from '../helpers/alerts';
-import { deleteDayTasks, getTasksFromDB, updateTask, updateTasks } from '../helpers/functions';
+import { deleteDayTasks, getTasksFromDB, initializeTasksForDay, updateTask, updateTasks } from '../helpers/functions';
 import { getCompletedTasks } from '../helpers/taskhelpers';
 
 const Tasks = ({ tasks, setTasks, viewTime }: {
@@ -53,7 +53,7 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
       {
         tasks.length === 0 && (
           <View style={styles.taskContainer}>
-            <TouchableOpacity onPress={() => { initializeDayTaskHistoryFromDB(defaultTasks, tasks, (results: Task[]) => { setTasks(results); }, viewTime) }} style={styles.helpLink}>
+            <TouchableOpacity onPress={() => { initializeTasksForDay(() => { getTasksFromDB((results: Task[]) => { setTasks(results); }, viewTime) }, viewTime) }} style={styles.helpLink}>
               <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
                 There are no entries. Tap here to create fresh tasks for this day.
               </Text>

@@ -57,7 +57,7 @@ export const insertTasks = (tasks: Task[], cb: () => void, forDateInt?: number):
     doQueriesWithArgsFromDB(
         tasks.map(_ => insertTaskQuery),
         tasks.map((task: Task) => [task.id, task.completed ? 1 : 0, dt]),
-        tasks.map((task: Task, i: number) => { return () => { console.log(`insertTasks inserted task ${task.id} (${i}/${tasks.length})`) } }),
+        tasks.map((task: Task, i: number) => { return () => { console.log(`insertTasks inserted task ${task.id} (${i + 1}/${tasks.length})`) } }),
         () => { console.log(`insertTasks (${tasks.length}) for ${dt}: done!`); cb && cb(); }
     );
 }
