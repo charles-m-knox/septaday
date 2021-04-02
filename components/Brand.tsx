@@ -17,7 +17,7 @@ const BrandView = (): JSX.Element => {
     <View style={styles.container}>
       <View style={styles.brandLogoContainer}>
         <TouchableOpacity onPress={() => { openURL(brandUrl); }}>
-          <Image style={styles.brandLogo} source={require('../assets/images/TechLife23.png')} />
+          <Image style={styles.brandLogo} source={require('../assets/images/TechLife23_centered-position-14x2_full-bg-shadow.png')} />
         </TouchableOpacity>
       </View>
       <View>
@@ -50,6 +50,7 @@ const styles = StyleSheet.create({
   brandLogo: {
     width: 96,
     height: 96,
+    borderRadius: 10,
   },
   brandLogoContainer: {
     flex: 1,

@@ -6,9 +6,8 @@ import { Task } from '../models/Task';
 import * as WebBrowser from 'expo-web-browser';
 import { createTwoButtonAlert } from '../helpers/alerts';
 
-const AboutSection = ({ tasks, setTasks }: {
+const AboutSection = ({ tasks }: {
   tasks: Task[],
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>
 }): JSX.Element => {
   // https://docs.expo.io/versions/v40.0.0/react-native/animated/
   // fadeAnim will be used as the value for opacity. Initial Value: 0

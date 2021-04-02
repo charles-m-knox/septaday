@@ -6,7 +6,6 @@ import { Text, View } from './Themed';
 import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import {
-  getQueriesWithArgsFromDB,
   getTaskHistoryFromDB,
   initializeDayTaskHistoryFromDB,
   pushTasksToDB,
@@ -15,8 +14,8 @@ import {
 import useColorScheme from '../hooks/useColorScheme';
 import { setAppBadgeForTodayTasks } from '../helpers/notifications';
 import { getDateInt, getHumanDate } from '../helpers/helpers';
-import { dropTaskHistoryForDaySQL } from '../sqlite/queries';
 import { createTwoButtonAlert } from '../helpers/alerts';
+import { deleteDayTasks, getTasksFromDB, updateTask } from '../sqlite/functions';
 
 const Tasks = ({ tasks, setTasks, viewTime }: {
   tasks: Task[],
@@ -62,7 +61,7 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
         tasks.map((task: Task, i: number): JSX.Element => {
           return (
             <View style={styles.taskContainer} key={`task-${task.id ? task.id : i}`}>
-              <TouchableOpacity onPress={() => { handleTaskPress(tasks, setTasks, task, i, viewTime); }} style={styles.helpLink}>
+              <TouchableOpacity onPress={() => { handleTaskPress(setTasks, task, viewTime); }} style={styles.helpLink}>
                 <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
                   {task.completed ? <Ionicons style={styles.circleIcon} name="md-checkmark-circle" size={18} color={Colors[colorScheme].success} /> : <Entypo style={styles.circleIcon} name="circle" size={18} color={Colors[colorScheme].text} />}  {task.name}
                 </Text>
@@ -94,7 +93,7 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
               </TouchableOpacity>
             </View>
             {Platform.OS === 'web' && (<View style={styles.taskContainer}>
-              <TouchableOpacity onPress={() => { getTaskHistoryFromDB((results: Task[]) => { setTasks(results); }, viewTime); }} style={styles.helpLink}>
+              <TouchableOpacity onPress={() => { getTasksFromDB((results: Task[]) => { setTasks(results); }, viewTime); }} style={styles.helpLink}>
                 <Text style={styles.taskText} lightColor={Colors[colorScheme].tint}>
                   Refresh all data.
                 </Text>
@@ -109,14 +108,13 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
                     `Yes`,
                     'destructive',
                     () => {
-                      getQueriesWithArgsFromDB(
-                        [dropTaskHistoryForDaySQL],
-                        [[viewTime]],
-                        [() => {
-                          console.log(`delete day ${viewTime} about to get task history from db`)
-                          getTaskHistoryFromDB((results: Task[]) => { setTasks(results); }, viewTime);
-                        }]
-                      );
+                      deleteDayTasks(
+                        () => {
+                          getTasksFromDB((results: Task[]) => { setTasks(results); },
+                            viewTime);
+                        },
+                        viewTime,
+                      )
                     }
                   )
                 }} style={styles.helpLink}>
@@ -134,59 +132,28 @@ const Tasks = ({ tasks, setTasks, viewTime }: {
 
 // handleTaskPress should update a single entry in the database to reflect the current task value, and then
 // only update that task in the react state.
-const handleTaskPress = (tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, task: Task, i: number, viewTime: number, txEndCallback?: any): void => {
-  const newTasks: Task[] = [];
-  tasks.forEach((originalTask: Task, j: number) => {
-    if (j === i) {
-      const newTask: Task = {
-        name: originalTask.name,
-        id: originalTask.id,
-        completed: !originalTask.completed,
-        about: originalTask.about,
-        order: originalTask.order,
-        link: originalTask.link,
-      };
-      console.log(`handleTaskPress: pushing task ${task.name} to db`);
-      newTasks.push(newTask);
-      return;
-    }
-    newTasks.push(originalTask);
-  });
-  pushTaskToDB(newTasks[i], () => {
-    console.log('handleTaskPress pushTaskToDB callback done');
-    getTaskHistoryFromDB(
-      (results: Task[]) => {
-        setTasks(results);
-        setAppBadgeForTodayTasks(results, viewTime);
-      },
-      viewTime,
-      txEndCallback
-    );
-  }, viewTime);
+const handleTaskPress = (setTasks: React.Dispatch<React.SetStateAction<Task[]>>, task: Task, viewTime: number): void => {
+  updateTask(
+    { ...task, completed: !task.completed },
+    () => { getTasksFromDB((results: Task[]) => { results && setTasks(results); }, viewTime) },
+    viewTime,
+  );
 }
 
-const completeAllTasks = (tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, viewTime: number, txEndCallback?: any): void => {
+const completeAllTasks = (tasks: Task[], setTasks: React.Dispatch<React.SetStateAction<Task[]>>, viewTime: number): void => {
   const newTasks: Task[] = tasks.map((originalTask: Task, j: number) => {
-    const newTask: Task = {
-      name: originalTask.name,
-      id: originalTask.id,
-      completed: true,
-      about: originalTask.about,
-      order: originalTask.order,
-      link: originalTask.link,
-    };
+    const newTask: Task = { ...originalTask, completed: true, };
     return newTask;
   });
   newTasks.sort((a: Task, b: Task) => a.order - b.order);
   pushTasksToDB(newTasks, () => {
     console.log('completeAllTasks: done');
-    getTaskHistoryFromDB(
+    getTasksFromDB(
       (results: Task[]) => {
         setTasks(results);
         setAppBadgeForTodayTasks(results, viewTime);
       },
       viewTime,
-      txEndCallback
     );
   }, viewTime);
 }
