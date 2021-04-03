@@ -69,26 +69,26 @@ const TasksScreen = (): JSX.Element => {
     return () => { }
   }, [tasks]);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      // Do something when the tab is opened
-      let isActive = true;
-      if (!isActive) return;
-      console.log('tasks screen: focused');
-      setRefreshing(true);
-      wait(4000).then(() => setRefreshing(false));
-      getTasksFromDB(
-        (results: Task[]) => {
-          setTasks(results);
-          setRefreshing(false);
-        },
-        viewTime,
-      );
-      return () => {
-        isActive = false;
-      }
-    }, [viewTime])
-  );
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     // Do something when the tab is opened
+  //     let isActive = true;
+  //     if (!isActive) return;
+  //     console.log('tasks screen: focused');
+  //     setRefreshing(true);
+  //     wait(4000).then(() => setRefreshing(false));
+  //     getTasksFromDB(
+  //       (results: Task[]) => {
+  //         setTasks(results);
+  //         setRefreshing(false);
+  //       },
+  //       viewTime,
+  //     );
+  //     return () => {
+  //       isActive = false;
+  //     }
+  //   }, [viewTime])
+  // );
 
   return (
     <View style={styles.container}>
