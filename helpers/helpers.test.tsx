@@ -1,4 +1,3 @@
-import { getDate } from 'date-fns';
 import * as helpers from './helpers';
 
 // https://jestjs.io/docs/timer-mocks

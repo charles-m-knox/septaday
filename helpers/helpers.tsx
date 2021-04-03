@@ -21,7 +21,6 @@ export const getDateInt = (forDate?: Date): number => {
             today.getMonth(),
             today.getDate(),
         ).getTime() - tzDiff) / 1000;
-
 }
 
 /**

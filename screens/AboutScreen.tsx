@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useState } from 'react';
 import { StyleSheet, RefreshControl, Platform } from 'react-native';
 import AboutSection from '../components/About';
 import DataControls from '../components/DataControls';
@@ -18,91 +17,89 @@ import useColorScheme from '../hooks/useColorScheme';
 import { getTaskStatsSQL, getTaskDaysSQL } from '../helpers/queries';
 import { getTasksFromDB } from '../helpers/functions';
 
+// for stats view
+const initialDates: number[] = [];
+const initialCompletions: number[] = [];
+
 export default function AboutScreen() {
   const colorScheme = useColorScheme();
-  const [tasks, setTasks] = useState(defaultTasks);
+  const [tasks, setTasks] = React.useState(defaultTasks);
   const [refreshing, setRefreshing] = React.useState(false);
-
-  // for stats view
-  const initialDates: number[] = [];
-  const initialCompletions: number[] = [];
-
   const [dates, setDates] = React.useState(initialDates);
   const [completions, setCompletions] = React.useState(initialCompletions);
+  // const dateCheckerRef: React.MutableRefObject<any> = React.useRef(0);
 
-  const onRefresh = React.useCallback(() => {
+  const getStats = React.useCallback(() => {
+    console.log('AboutScreen getStats: starting');
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
-    getTasksFromDB((results: Task[]) => {
-      setTasks(results);
-      getStats(() => {
-        setRefreshing(false);
-      });
-    });
-  }, []);
-
-  // https://css-tricks.com/run-useeffect-only-once/
-  React.useEffect(() => {
+    let isActive = true;
+    if (!isActive) return;
     getTasksFromDB(
       (results: Task[]) => {
         setTasks(results);
-        getStats();
+        doQueriesWithArgsFromDB(
+          [getTaskStatsSQL, getTaskDaysSQL], [],
+          [
+            (statsResults: number[]) => {
+              if (!statsResults) return;
+              console.log(`AboutScreen getStats queried stats: ${JSON.stringify(statsResults)}`);
+              setCompletions(
+                statsResults.map((statsResult: any): number => {
+                  return statsResult["completed"];
+                })
+              );
+            },
+            (datesResults: number[]) => {
+              if (!datesResults) return;
+              console.log(`AboutScreen getStats queried dates: ${JSON.stringify(datesResults)}`);
+              setDates(
+                datesResults.map((datesResult: any): number => {
+                  return datesResult["date"];
+                })
+              );
+            },
+          ],
+          () => { setRefreshing(false); console.log(`AboutScreen getStats: done`); }
+        )
       }
     );
-    return () => { }
-  }, [])
-
-  const getStats = (callback?: any) => {
-    doQueriesWithArgsFromDB(
-      [getTaskStatsSQL, getTaskDaysSQL],
-      [],
-      [
-        (statsResults: number[]) => {
-          if (!statsResults) return;
-          console.log(`AboutScreen getStats queried stats: ${JSON.stringify(statsResults)}`);
-          setCompletions(
-            statsResults.map((statsResult: any): number => {
-              return statsResult["completed"];
-            })
-          );
-        },
-        (datesResults: number[]) => {
-          if (!datesResults) return;
-          console.log(`AboutScreen getStats queried dates: ${JSON.stringify(datesResults)}`);
-          setDates(
-            datesResults.map((datesResult: any): number => {
-              return datesResult["date"];
-            })
-          );
-        },
-      ],
-      callback,
-    )
-  }
+    return () => {
+      isActive = false;
+    }
+  }, [
+    // tasks,
+    // refreshing,
+    // dates,
+    // completions,
+    setTasks,
+    setRefreshing,
+    setDates,
+    setCompletions,
+  ])
 
   // https://reactnavigation.org/docs/use-focus-effect/#running-asynchronous-effects
   useFocusEffect(
     React.useCallback(() => {
-      // Do something when the tab is opened
       let isActive = true;
-      if (isActive) {
-        setRefreshing(true);
-        getTasksFromDB((results: Task[]) => {
-          if (!results) return;
-          setTasks(results);
-          getStats(() => {
-            setRefreshing(false);
-          })
-        });
-      }
+      if (!isActive) return;
+      getStats();
+      // dateCheckerRef.current = setInterval(
+      //   () => {
+      //     console.log(`about screen date check: ${new Date().getTime()}`);
+      //   },
+      //   5000
+      // );
       return () => {
+        // clearInterval(dateCheckerRef.current);
+        // dateCheckerRef.current = 0;
         isActive = false;
-      };
+      }
     }, [])
   );
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={getStats} />}>
       <View style={styles.container}>
         <Text style={styles.title}>About</Text>
         <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />

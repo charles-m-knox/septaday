@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useState } from 'react';
 import { StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Tasks from '../components/Tasks';
@@ -15,8 +14,8 @@ import { setAppBadge } from '../helpers/notifications';
 const TasksScreen = (): JSX.Element => {
   const colorScheme = useColorScheme();
   const [refreshing, setRefreshing] = React.useState(false);
-  const [tasks, setTasks] = useState(defaultTasks);
-  const [viewTime, setViewTime] = useState(getDateInt());
+  const [tasks, setTasks] = React.useState(defaultTasks);
+  const [viewTime, setViewTime] = React.useState(getDateInt());
 
   const onRefresh = React.useCallback(() => {
     refreshForTime();
