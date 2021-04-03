@@ -18,13 +18,9 @@ const TasksScreen = (): JSX.Element => {
   const [viewTime, setViewTime] = React.useState(getDateInt());
 
   const onRefresh = React.useCallback(() => {
-    refreshForTime();
-  }, [viewTime]);
-
-  const refreshForTime = () => {
+    console.log(`onRefresh: refreshing for ${viewTime} (${getHumanDate(viewTime)})`);
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
-    console.log(`onRefresh: refreshing for ${viewTime} (${getHumanDate(viewTime)})`);
     getTasksFromDB(
       (results: Task[]) => {
         setTasks(results);
@@ -32,11 +28,12 @@ const TasksScreen = (): JSX.Element => {
       },
       viewTime,
     );
-  }
+  }, [viewTime]);
 
   // https://css-tricks.com/run-useeffect-only-once/
   React.useEffect(() => {
     setRefreshing(true);
+    wait(4000).then(() => setRefreshing(false));
     initializeDB(
       () => {
         getTasksFromDB((results: Task[]) => {
@@ -51,6 +48,7 @@ const TasksScreen = (): JSX.Element => {
   React.useEffect(() => {
     console.log('tasks screen: viewTime changed');
     setRefreshing(true);
+    wait(4000).then(() => setRefreshing(false));
     getTasksFromDB(
       (results: Task[]) => {
         setTasks(results);
@@ -74,8 +72,22 @@ const TasksScreen = (): JSX.Element => {
   useFocusEffect(
     React.useCallback(() => {
       // Do something when the tab is opened
-      return () => { };
-    }, [])
+      let isActive = true;
+      if (!isActive) return;
+      console.log('tasks screen: focused');
+      setRefreshing(true);
+      wait(4000).then(() => setRefreshing(false));
+      getTasksFromDB(
+        (results: Task[]) => {
+          setTasks(results);
+          setRefreshing(false);
+        },
+        viewTime,
+      );
+      return () => {
+        isActive = false;
+      }
+    }, [viewTime])
   );
 
   return (

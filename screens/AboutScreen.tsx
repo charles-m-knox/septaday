@@ -43,7 +43,7 @@ export default function AboutScreen() {
           [
             (statsResults: number[]) => {
               if (!statsResults) return;
-              console.log(`AboutScreen getStats queried stats: ${JSON.stringify(statsResults)}`);
+              console.log(`AboutScreen getStats queried stats: ${statsResults.length}`);
               setCompletions(
                 statsResults.map((statsResult: any): number => {
                   return statsResult["completed"];
@@ -52,7 +52,7 @@ export default function AboutScreen() {
             },
             (datesResults: number[]) => {
               if (!datesResults) return;
-              console.log(`AboutScreen getStats queried dates: ${JSON.stringify(datesResults)}`);
+              console.log(`AboutScreen getStats queried dates: ${datesResults.length}`);
               setDates(
                 datesResults.map((datesResult: any): number => {
                   return datesResult["date"];
