@@ -23,18 +23,17 @@ const initialCompletions: number[] = [];
 
 export default function AboutScreen() {
   const colorScheme = useColorScheme();
+  const [isVisible, setIsVisible] = React.useState(false);
+
   const [tasks, setTasks] = React.useState(defaultTasks);
   const [refreshing, setRefreshing] = React.useState(false);
   const [dates, setDates] = React.useState(initialDates);
   const [completions, setCompletions] = React.useState(initialCompletions);
-  // const dateCheckerRef: React.MutableRefObject<any> = React.useRef(0);
 
   const getStats = React.useCallback(() => {
     console.log('AboutScreen getStats: starting');
     setRefreshing(true);
     wait(4000).then(() => setRefreshing(false));
-    let isActive = true;
-    if (!isActive) return;
     getTasksFromDB(
       (results: Task[]) => {
         setTasks(results);
@@ -65,73 +64,66 @@ export default function AboutScreen() {
       }
     );
     return () => {
-      isActive = false;
+      setRefreshing(false);
+      setDates([]);
+      setTasks([]);
     }
-  }, [
-    // tasks,
-    // refreshing,
-    // dates,
-    // completions,
-    setTasks,
-    setRefreshing,
-    setDates,
-    setCompletions,
-  ])
+  }, [])
 
   // https://reactnavigation.org/docs/use-focus-effect/#running-asynchronous-effects
   useFocusEffect(
     React.useCallback(() => {
-      let isActive = true;
-      if (!isActive) return;
+      setIsVisible(true);
       getStats();
-      // dateCheckerRef.current = setInterval(
-      //   () => {
-      //     console.log(`about screen date check: ${new Date().getTime()}`);
-      //   },
-      //   5000
-      // );
       return () => {
-        // clearInterval(dateCheckerRef.current);
-        // dateCheckerRef.current = 0;
-        isActive = false;
+        setIsVisible(false);
+        setRefreshing(false);
+        setDates([]);
+        setTasks([]);
       }
     }, [])
   );
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={getStats} />}>
-      <View style={styles.container}>
-        <Text style={styles.title}>About</Text>
-        <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <AboutSection tasks={tasks} />
-      </View>
-      <View style={styles.container}>
-        <Text style={styles.title}>Stats</Text>
-        <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <Stats dates={dates} completions={completions} />
-      </View>
-      <View style={styles.container}>
-        <Text style={styles.title}>App</Text>
-        <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <BrandView />
-      </View>
+    <>
       {
-        (Platform.OS === "ios" || Platform.OS === "android") && (
-          <React.Fragment>
+        isVisible && ( // https://corstianboerman.com/2020-09-05/force-a-component-to-unmount-with-react-navigation.md.html
+          <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={getStats} />}>
             <View style={styles.container}>
-              <Text style={styles.title}>Push Notifications</Text>
+              <Text style={styles.title}>About</Text>
               <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-              <NotificationControls />
+              <AboutSection tasks={tasks} />
             </View>
-          </React.Fragment>
+            <View style={styles.container}>
+              <Text style={styles.title}>Stats</Text>
+              <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+              <Stats dates={dates} completions={completions} />
+            </View>
+            <View style={styles.container}>
+              <Text style={styles.title}>App</Text>
+              <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+              <BrandView />
+            </View>
+            {
+              (Platform.OS === "ios" || Platform.OS === "android") && (
+                <React.Fragment>
+                  <View style={styles.container}>
+                    <Text style={styles.title}>Push Notifications</Text>
+                    <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+                    <NotificationControls />
+                  </View>
+                </React.Fragment>
+              )
+            }
+            <View style={styles.container}>
+              <Text style={styles.title}>Data</Text>
+              <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+              <DataControls tasks={tasks} setTasks={setTasks} />
+            </View>
+          </ScrollView>
         )
       }
-      <View style={styles.container}>
-        <Text style={styles.title}>Data</Text>
-        <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-        <DataControls tasks={tasks} setTasks={setTasks} />
-      </View>
-    </ScrollView>
+    </>
   );
 }
 
