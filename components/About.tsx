@@ -11,7 +11,7 @@ const AboutSection = ({ tasks }: {
 }): JSX.Element => {
   // https://docs.expo.io/versions/v40.0.0/react-native/animated/
   // fadeAnim will be used as the value for opacity. Initial Value: 0
-  const fadeAnims = tasks.map((task: Task) => { return React.useRef(new Animated.Value(0)).current; });
+  const fadeAnims: number[] = tasks ? tasks.map(task => 1) : []; // tasks.map((task: Task) => { return React.useRef(new Animated.Value(0)).current; });
   const initialFadeStates: number[] = tasks.map((task: Task) => { return 0 });
   const [fadeStates, setFadeStates] = React.useState(initialFadeStates);
 
@@ -22,15 +22,15 @@ const AboutSection = ({ tasks }: {
         newFadeStates[i] = 1;
         // make the element display immediately
         setFadeStates(newFadeStates);
-        fadeIn(fadeAnims[i], () => { });
+        // fadeIn(fadeAnims[i], () => { });
         break;
       case 1:
       default:
         // hide the element only after the animation finishes
-        fadeOut(fadeAnims[i], () => {
-          newFadeStates[i] = 0;
-          setFadeStates(newFadeStates);
-        });
+        // fadeOut(fadeAnims[i], () => {
+        newFadeStates[i] = 0;
+        setFadeStates(newFadeStates);
+        // });
         return;
     }
   }
@@ -86,7 +86,7 @@ const AboutSection = ({ tasks }: {
                   More on: {task.name}
                 </Text>
                 <Animated.View
-                  style={[{ opacity: fadeAnims[i] }]}>
+                  style={[{ /* opacity: fadeAnims[i] */ }]}>
                   <Text style={[styles.taskText, !fadeStates[i] && { display: 'none' }]} lightColor={Colors.light.tint}>
                     {task.about}
                   </Text>

@@ -73,7 +73,7 @@ export default function AboutScreen() {
   // https://reactnavigation.org/docs/use-focus-effect/#running-asynchronous-effects
   useFocusEffect(
     React.useCallback(() => {
-      setIsVisible(true);
+      if (!isVisible) setIsVisible(true);
       getStats();
       return () => {
         setIsVisible(false);
