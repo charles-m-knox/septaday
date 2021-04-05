@@ -76,6 +76,7 @@ export default function AboutScreen() {
       if (!isVisible) setIsVisible(true);
       getStats();
       return () => {
+        console.log('about screen: cleanup');
         setIsVisible(false);
         setRefreshing(false);
         setDates([]);
