@@ -11,7 +11,7 @@ const AboutSection = ({ tasks }: {
 }): JSX.Element => {
   // https://docs.expo.io/versions/v40.0.0/react-native/animated/
   // fadeAnim will be used as the value for opacity. Initial Value: 0
-  const fadeAnims: number[] = tasks ? tasks.map(task => 1) : []; // tasks.map((task: Task) => { return React.useRef(new Animated.Value(0)).current; });
+  const fadeAnims: number[] = tasks ? tasks.map(task => 0) : []; // tasks.map((task: Task) => { return React.useRef(new Animated.Value(0)).current; });
   const initialFadeStates: number[] = tasks.map((task: Task) => { return 0 });
   const [fadeStates, setFadeStates] = React.useState(initialFadeStates);
 
