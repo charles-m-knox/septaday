@@ -30,10 +30,12 @@ export default function AboutScreen() {
   const [dates, setDates] = React.useState(initialDates);
   const [completions, setCompletions] = React.useState(initialCompletions);
 
-  const getStats = React.useCallback(() => {
-    console.log('AboutScreen getStats: starting');
-    setRefreshing(true);
-    wait(4000).then(() => setRefreshing(false));
+  const getStats = React.useCallback((refreshAnim: boolean = true) => {
+    console.log(`AboutScreen getStats: starting, refresh: ${refreshAnim}`);
+    if (refreshAnim) {
+      setRefreshing(true);
+      wait(4000).then(() => setRefreshing(false));
+    }
     getTasksFromDB(
       (results: Task[]) => {
         setTasks(results);
@@ -59,7 +61,13 @@ export default function AboutScreen() {
               );
             },
           ],
-          () => { setRefreshing(false); console.log(`AboutScreen getStats: done`); }
+          () => {
+            if (refreshAnim) {
+              setRefreshing(false);
+            }
+
+            console.log(`AboutScreen getStats: done`);
+          }
         )
       }
     );
@@ -74,16 +82,32 @@ export default function AboutScreen() {
   useFocusEffect(
     React.useCallback(() => {
       if (!isVisible) setIsVisible(true);
-      getStats();
+      getStats(false);
       return () => {
         console.log('about screen: cleanup');
-        setIsVisible(false);
+        // by setting isVisible to false every time we
+        // scroll away to a different screen, the entire page
+        // is reset, and causes scrollbar position to be reset,
+        // as well as jumpy re-rendering
+        // setIsVisible(false);
         setRefreshing(false);
-        setDates([]);
-        setTasks([]);
+        // setDates([]);
+        // setTasks([]);
       }
     }, [])
   );
+
+  React.useEffect(() => {
+    if (!isVisible) setIsVisible(true);
+    getStats(false);
+    return () => {
+      console.log('about screen: cleanup');
+      setIsVisible(false);
+      setRefreshing(false);
+      setDates([]);
+      setTasks([]);
+    }
+  }, []);
 
   return (
     <>
