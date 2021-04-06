@@ -35,6 +35,15 @@ const AboutSection = ({ tasks }: {
     createTwoButtonAlert("Open in browser?", msg, "Open", "default", () => { WebBrowser.openBrowserAsync(link); });
   }
 
+  React.useEffect(() => {
+    console.log(`about component: tasks changed`);
+    setSectionVisibilityStates(tasks.map((task: Task) => { return 0 }));
+    return () => {
+      console.log(`about component: tasks cleaning up`);
+      setSectionVisibilityStates([]);
+    }
+  }, [tasks])
+
   return (
     <View style={styles.container}>
       <View>
