@@ -10,6 +10,7 @@ import {
     initializeHistoryDBQuery,
     initializeTaskQuery,
     initializeTasksDBQuery,
+    initializeTodayTaskHistoryQuery,
     insertTaskQuery
 } from "./queries";
 
@@ -115,14 +116,13 @@ export const initializeTasksTable = (cb: () => void): void => {
     );
 }
 
-
 export const initializeTasksForDay = (cb: () => void, forDateInt?: number): void => {
     const dt = forDateInt ? forDateInt : getDateInt();
     console.log(`initializeTasksForDay for ${dt}: starting`);
     doQueriesWithArgsFromDB(
-        defaultTasks.map(_ => deleteTaskQuery),
-        defaultTasks.map((task: Task) => [task.id, dt]),
+        defaultTasks.map(_ => initializeTodayTaskHistoryQuery),
+        defaultTasks.map((task: Task) => [task.id, 0, dt, task.id, dt]),
         [],
-        () => { insertTasks(defaultTasks, () => { cb && cb(); }, dt); console.log(`updateTasks for ${dt}: done!`); }
+        () => { cb && cb(); console.log(`updateTasks for ${dt}: done!`); }
     );
 }
