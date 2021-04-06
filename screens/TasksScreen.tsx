@@ -16,6 +16,7 @@ const TasksScreen = (): JSX.Element => {
   const [refreshing, setRefreshing] = React.useState(false);
   const [tasks, setTasks] = React.useState(defaultTasks);
   const [viewTime, setViewTime] = React.useState(getDateInt());
+  const [isVisible, setIsVisible] = React.useState(false);
 
   const onRefresh = React.useCallback(() => {
     console.log(`onRefresh: refreshing for ${viewTime} (${getHumanDate(viewTime)})`);
@@ -69,61 +70,80 @@ const TasksScreen = (): JSX.Element => {
     return () => { }
   }, [tasks]);
 
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     // Do something when the tab is opened
-  //     let isActive = true;
-  //     if (!isActive) return;
-  //     console.log('tasks screen: focused');
-  //     setRefreshing(true);
-  //     wait(4000).then(() => setRefreshing(false));
-  //     getTasksFromDB(
-  //       (results: Task[]) => {
-  //         setTasks(results);
-  //         setRefreshing(false);
-  //       },
-  //       viewTime,
-  //     );
-  //     return () => {
-  //       isActive = false;
-  //     }
-  //   }, [viewTime])
-  // );
+  // https://reactnavigation.org/docs/use-focus-effect/#running-asynchronous-effects
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!isVisible) setIsVisible(true);
+      console.log('tasks screen: focused');
+      // TODO: the below doesn't quite cooperate, primarily because
+      // TODO: it can override the user's current viewtime
+      // const newDateInt = getDateInt();
+      // if (viewTime !== newDateInt) {
+      //   setViewTime(newDateInt)
+      // }
+      // setRefreshing(true);
+      // wait(4000).then(() => setRefreshing(false));
+      // getTasksFromDB(
+      //   (results: Task[]) => {
+      //     setTasks(results);
+      //     setRefreshing(false);
+      //   },
+      //   newDateInt,
+      //   // viewTime,
+      // );
+      return () => {
+        console.log('tasks screen: cleanup');
+        setIsVisible(false);
+        setRefreshing(false);
+        // setTasks([]);
+      }
+    }, [])
+  );
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={[{ maxHeight: '92%', minWidth: '100%' }]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-        <View style={styles.container}>
-          {/* <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" /> */}
-          <Tasks tasks={tasks} setTasks={setTasks} viewTime={viewTime} />
-        </View >
-      </ScrollView>
-      <View style={styles.separatorThin} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <View style={[styles.titleContainer, { maxHeight: '8%' }]}>
-        <TouchableOpacity onPress={() => {
-          const newViewTime = getOffsetDaysFromInt(viewTime, -1);
-          setViewTime(newViewTime);
-        }} >
-          <Text style={styles.iconArrowDate}>
-            <Ionicons style={[]} name="chevron-back" size={32} color={Colors[colorScheme].iconDim} />
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => {
-          const newViewTime = getDateInt();
-          setViewTime(newViewTime);
-        }} >
-          <Text style={styles.title}>{viewTime === getDateInt() ? 'Today' : getHumanDate(viewTime, false)}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => {
-          const newViewTime = getOffsetDaysFromInt(viewTime, 1);
-          setViewTime(newViewTime);
-        }} >
-          <Text style={styles.iconArrowDate}>
-            <Ionicons style={[]} name="chevron-forward" size={32} color={Colors[colorScheme].iconDim} />
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View >
+    <>
+      {
+        isVisible ? (
+          <View style={styles.container} >
+            <ScrollView style={[{ maxHeight: '92%', minWidth: '100%' }]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+              <View style={styles.container}>
+                {/* <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" /> */}
+                <Tasks tasks={tasks} setTasks={setTasks} viewTime={viewTime} />
+              </View >
+            </ScrollView>
+            <View style={styles.separatorThin} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+            <View style={[styles.titleContainer, { maxHeight: '8%' }]}>
+              <TouchableOpacity onPress={() => {
+                const newViewTime = getOffsetDaysFromInt(viewTime, -1);
+                setViewTime(newViewTime);
+              }} >
+                <Text style={styles.iconArrowDate}>
+                  <Ionicons style={[]} name="chevron-back" size={32} color={Colors[colorScheme].iconDim} />
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => {
+                const newViewTime = getDateInt();
+                setViewTime(newViewTime);
+              }} >
+                <Text style={styles.title}>{viewTime === getDateInt() ? 'Today' : getHumanDate(viewTime, false)}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => {
+                const newViewTime = getOffsetDaysFromInt(viewTime, 1);
+                setViewTime(newViewTime);
+              }} >
+                <Text style={styles.iconArrowDate}>
+                  <Ionicons style={[]} name="chevron-forward" size={32} color={Colors[colorScheme].iconDim} />
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View >
+        ) : (
+          <View style={styles.container}>
+            {/* left empty intentionally */}
+          </View>
+        )
+      }
+    </>
   );
 }
 

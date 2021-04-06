@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
 import { Task } from '../models/Task';
@@ -9,49 +9,25 @@ import { createTwoButtonAlert } from '../helpers/alerts';
 const AboutSection = ({ tasks }: {
   tasks: Task[],
 }): JSX.Element => {
-  // https://docs.expo.io/versions/v40.0.0/react-native/animated/
-  // fadeAnim will be used as the value for opacity. Initial Value: 0
-  const fadeAnims: number[] = tasks ? tasks.map(task => 0) : []; // tasks.map((task: Task) => { return React.useRef(new Animated.Value(0)).current; });
-  const initialFadeStates: number[] = tasks.map((task: Task) => { return 0 });
-  const [fadeStates, setFadeStates] = React.useState(initialFadeStates);
+  const initialSectionStates: number[] = tasks.map((task: Task) => { return 0 });
+  const [sectionVisibilityStates, setSectionVisibilityStates] = React.useState(initialSectionStates);
 
   const fadeToggle = (i: number) => {
-    const newFadeStates = [...fadeStates];
-    switch (fadeStates[i]) {
+    const newFadeStates = [...sectionVisibilityStates];
+    switch (sectionVisibilityStates[i]) {
       case 0:
         newFadeStates[i] = 1;
         // make the element display immediately
-        setFadeStates(newFadeStates);
-        // fadeIn(fadeAnims[i], () => { });
+        setSectionVisibilityStates(newFadeStates);
         break;
       case 1:
       default:
         // hide the element only after the animation finishes
-        // fadeOut(fadeAnims[i], () => {
         newFadeStates[i] = 0;
-        setFadeStates(newFadeStates);
-        // });
+        setSectionVisibilityStates(newFadeStates);
         return;
     }
   }
-
-  const fadeIn = (fadeAnim: Animated.Value, callback?: any) => {
-    // will change fadeAnim value to 1 over the below duration
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 250,
-      useNativeDriver: true,
-    }).start(({ finished }) => { callback && callback(finished); });
-  };
-
-  const fadeOut = (fadeAnim: Animated.Value, callback?: any) => {
-    // will change fadeAnim value to 0 over the below duration
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(({ finished }) => { callback && callback(finished); });
-  };
 
   const openURL = (link: string): void => {
     if (!link) return;
@@ -85,15 +61,15 @@ const AboutSection = ({ tasks }: {
                 <Text style={styles.taskTextBold} lightColor={Colors.light.tint}>
                   More on: {task.name}
                 </Text>
-                <Animated.View
-                  style={[{ /* opacity: fadeAnims[i] */ }]}>
-                  <Text style={[styles.taskText, !fadeStates[i] && { display: 'none' }]} lightColor={Colors.light.tint}>
+                <View
+                  style={[{}]}>
+                  <Text style={[styles.taskText, !sectionVisibilityStates[i] && { display: 'none' }]} lightColor={Colors.light.tint}>
                     {task.about}
                   </Text>
-                  <Text style={[styles.taskTextLink, !fadeStates[i] && { display: 'none' }]} lightColor={Colors.light.tint}>
+                  <Text style={[styles.taskTextLink, !sectionVisibilityStates[i] && { display: 'none' }]} lightColor={Colors.light.tint}>
                     For more info, long-press here to visit {task.link}.
                   </Text>
-                </Animated.View>
+                </View>
               </TouchableOpacity>
             </View>
           )

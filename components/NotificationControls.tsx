@@ -1,44 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, Platform } from 'react-native';
 import Colors from '../constants/Colors';
 import { Text, View } from './Themed';
-import * as Notifications from 'expo-notifications';
-import { registerForPushNotificationsAsync, scheduleCalendarPushNotification, schedulePushNotification, setAppBadge } from '../helpers/notifications';
 
 const NotificationControls = (): JSX.Element => {
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const initialNotification: any = {}; // should technically be of type Notifications.Notification
-  const [notification, setNotification] = useState(initialNotification);
-  const notificationListener: any = useRef();
-  const responseListener: any = useRef();
-
-  const initializeNotifications = () => {
-    if (Platform.OS === "ios" || Platform.OS === "android") {
-      registerForPushNotificationsAsync().then((token?: string) => setExpoPushToken(token ? token : ''));
-
-      notificationListener.current = Notifications.addNotificationReceivedListener((notification: Notifications.Notification) => {
-        setNotification(notification);
-      });
-
-      responseListener.current = Notifications.addNotificationResponseReceivedListener((response: Notifications.NotificationResponse) => {
-        console.log(response);
-      });
-    }
-  }
-
-  const deinitializeNotifications = () => {
-    if (Platform.OS === "ios" || Platform.OS === "android") {
-      Notifications.removeNotificationSubscription(notificationListener);
-      Notifications.removeNotificationSubscription(responseListener);
-    }
-  }
-
-  useEffect(() => {
-    initializeNotifications();
-    return () => {
-      deinitializeNotifications();
-    };
-  }, []);
 
   return (
     <View style={styles.container}>

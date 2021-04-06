@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { StyleSheet, RefreshControl, Platform } from 'react-native';
+import { StyleSheet, RefreshControl, /* Platform */ } from 'react-native';
 import AboutSection from '../components/About';
 import DataControls from '../components/DataControls';
 import { Text, View, ScrollView } from '../components/Themed';
@@ -11,7 +11,7 @@ import { wait } from '../helpers/helpers';
 import BrandView from '../components/Brand';
 import Stats from '../components/Stats';
 import { useFocusEffect } from '@react-navigation/native';
-import NotificationControls from '../components/NotificationControls';
+// import NotificationControls from '../components/NotificationControls';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import { getTaskStatsSQL, getTaskDaysSQL } from '../helpers/queries';
@@ -88,7 +88,7 @@ export default function AboutScreen() {
   return (
     <>
       {
-        isVisible && ( // https://corstianboerman.com/2020-09-05/force-a-component-to-unmount-with-react-navigation.md.html
+        isVisible ? ( // https://corstianboerman.com/2020-09-05/force-a-component-to-unmount-with-react-navigation.md.html
           <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={getStats} />}>
             <View style={styles.container}>
               <Text style={styles.title}>About</Text>
@@ -105,7 +105,7 @@ export default function AboutScreen() {
               <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
               <BrandView />
             </View>
-            {
+            {/* {
               (Platform.OS === "ios" || Platform.OS === "android") && (
                 <React.Fragment>
                   <View style={styles.container}>
@@ -115,13 +115,17 @@ export default function AboutScreen() {
                   </View>
                 </React.Fragment>
               )
-            }
+            } */}
             <View style={styles.container}>
               <Text style={styles.title}>Data</Text>
               <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
               <DataControls tasks={tasks} setTasks={setTasks} />
             </View>
           </ScrollView>
+        ) : (
+          <View style={styles.container}>
+            {/* left empty intentionally */}
+          </View>
         )
       }
     </>
