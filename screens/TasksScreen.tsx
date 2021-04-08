@@ -104,15 +104,15 @@ const TasksScreen = (): JSX.Element => {
     <>
       {
         isVisible ? (
-          <View style={styles.container} >
-            <ScrollView style={[{ maxHeight: '92%', minWidth: '100%' }]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+          <View style={[styles.container, { paddingTop: 10 }]} >
+            <ScrollView style={[{ minWidth: '100%' }]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
               <View style={styles.container}>
                 {/* <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" /> */}
                 <Tasks tasks={tasks} setTasks={setTasks} viewTime={viewTime} />
               </View >
             </ScrollView>
             <View style={styles.separatorThin} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-            <View style={[styles.titleContainer, { maxHeight: '8%' }]}>
+            <View style={[styles.viewTimeContainer, { minHeight: 50, maxHeight: 50, paddingTop: 0 }]}>
               <TouchableOpacity onPress={() => {
                 const newViewTime = getOffsetDaysFromInt(viewTime, -1);
                 setViewTime(newViewTime);
@@ -152,16 +152,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
   },
-  titleContainer: {
+  viewTimeContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     alignContent: 'center',
     justifyContent: 'center',
     width: '100%',
-    paddingTop: 10
   },
   title: {
     fontSize: 20,
